@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindscape Japan - 完全版デモ診断システム</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 25%, #fecfef 75%, #ffc3a0 100%);
+            background-size: 400% 400%;
+            animation: gradientFlow 15s ease infinite;
+            min-height: 100vh;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            animation: sparkle 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0) rotate(0deg); }
+            50% { opacity: 1; transform: scale(1) rotate(180deg); }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Progress Bar */
+        .progress-section {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 1rem 2rem;
+            z-index: 100;
+            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.08);
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 154, 158, 0.2);
+            border-radius: 20px;
+            overflow: hidden;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff9a9e, #fecfef, #ffc3a0);
+            border-radius: 20px;
+            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: 0.9rem;
+            color: #6b7280;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        /* Main Glass Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 30px;
+            padding: 3rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            margin-top: 20px;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideInUp 0.8s ease-out forwards;
+            min-height: 400px;
+        }
+
+        .step-badge {
+            display: inline-block;
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: white;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(255, 154, 158, 0.3);
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #6b7280;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        /* Demo Badge */
+        .demo-badge {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        .demo-badge h3 {
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .demo-badge p {
+            opacity: 0.9;
+            font-size: 1rem;
+        }
+
+        /* Profile Form */
+        .form-group {
+            margin-bottom: 1.8rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.8rem;
+            font-weight: 600;
+            color: #374151;
+            font-size: 1rem;
+        }
+
+        .glass-input {
+            width: 100%;
+            padding: 1.2rem 1.8rem;
+            border: 2px solid rgba(255, 154, 158, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            color: #374151;
+            transition: all 0.3s ease;
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-input:focus {
+            outline: none;
+            border-color: #ff9a9e;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 
+                0 8px 25px rgba(255, 154, 158, 0.2),
+                0 0 0 3px rgba(255, 154, 158, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .glass-input::placeholder {
+            color: #9ca3af;
+        }
+
+        /* Department Grid */
+        .department-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.2rem;
+            margin-top: 1rem;
+        }
+
+        .dept-card {
+            padding: 1.8rem;
+            border: 2px solid rgba(255, 154, 158, 0.25);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .dept-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .dept-card:hover {
+            border-color: rgba(255, 154, 158, 0.5);
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(255, 154, 158, 0.25);
+        }
+
+        .dept-card:hover::before {
+            left: 100%;
+        }
+
+        .dept-card.selected {
+            border-color: #ff9a9e;
+            background: rgba(255, 154, 158, 0.15);
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(255, 154, 158, 0.3);
+        }
+
+        .dept-icon {
+            font-size: 2.2rem;
+            margin-bottom: 0.8rem;
+            display: block;
+        }
+
+        .dept-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 0.4rem;
+            font-size: 1.1rem;
+        }
+
+        .dept-desc {
+            font-size: 0.9rem;
+            color: #6b7280;
+            line-height: 1.4;
+        }
+
+        /* Question Section */
+        .question-section {
+            display: none;
+        }
+
+        .question-section.active {
+            display: block;
+            animation: slideInUp 0.6s ease-out;
+        }
+
+        .question-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2d3748;
+            line-height: 1.4;
+        }
+
+        .question-subtitle {
+            font-size: 1rem;
+            color: #6b7280;
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+        }
+
+        /* Choice Options */
+        .choices-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .choice-button {
+            padding: 1.2rem 1.5rem;
+            border: 2px solid rgba(255, 154, 158, 0.25);
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            font-size: 1rem;
+            color: #374151;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .choice-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 154, 158, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .choice-button:hover {
+            border-color: rgba(255, 154, 158, 0.4);
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(255, 154, 158, 0.2);
+        }
+
+        .choice-button:hover::before {
+            left: 100%;
+        }
+
+        .choice-button.selected {
+            border-color: #ff9a9e;
+            background: rgba(255, 154, 158, 0.15);
+            color: #2d3748;
+            font-weight: 600;
+            transform: translateY(-2px);
+        }
+
+        /* Free Text Area */
+        .glass-textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 1.5rem;
+            border: 2px solid rgba(255, 154, 158, 0.3);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            font-family: inherit;
+            color: #374151;
+            resize: vertical;
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            box-shadow: 
+                0 4px 15px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .glass-textarea:focus {
+            outline: none;
+            border-color: #ff9a9e;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 
+                0 8px 25px rgba(255, 154, 158, 0.2),
+                0 0 0 3px rgba(255, 154, 158, 0.1);
+        }
+
+        .glass-textarea::placeholder {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 3rem;
+            gap: 1rem;
+        }
+
+        .glass-button {
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .glass-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .glass-button:hover::before {
+            left: 100%;
+        }
+
+        .btn-back {
+            background: rgba(255, 255, 255, 0.6);
+            color: #6b7280;
+            border: 2px solid rgba(255, 154, 158, 0.3);
+        }
+
+        .btn-back:hover {
+            background: rgba(255, 255, 255, 0.8);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, #ff9a9e, #fecfef);
+            color: white;
+            border: 2px solid transparent;
+            box-shadow: 0 8px 25px rgba(255, 154, 158, 0.4);
+        }
+
+        .btn-next:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 35px rgba(255, 154, 158, 0.5);
+        }
+
+        .btn-next:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        /* Hidden sections */
+        .hidden {
+            display: none;
+        }
+
+        /* Result Display */
+        .result-section {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            padding: 2rem;
+            margin-top: 2rem;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .result-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-content {
+            line-height: 1.7;
+            color: #4a5568;
+        }
+
+        .alert-section {
+            background: linear-gradient(135deg, #fed7d7, #fbb6ce);
+            border: 2px solid #f56565;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            color: #2d3748;
+        }
+
+        .alert-title {
+            color: #c53030;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            font-size: 1.2rem;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .tag {
+            background: rgba(255, 154, 158, 0.2);
+            color: #2d3748;
+            padding: 0.3rem 1rem;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 154, 158, 0.3);
+        }
+
+        /* Loading State */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            backdrop-filter: blur(5px);
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #ff9a9e;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: white;
+            font-size: 1.2rem;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        /* Animations */
+        @keyframes slideInUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .glass-card {
+                padding: 2rem 1.5rem;
+                margin-top: 80px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .department-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .glass-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-section" id="progressSection">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">質問 1 / 20</div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">
+            あなたの心を分析しています...<br>
+            少々お待ちください ✨
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Welcome & Profile Section -->
+        <div class="glass-card" id="welcomeSection">
+            <div class="demo-badge">
+                <h3>🎨 Mindscape Japan - 完全版デモ</h3>
+                <p>診断から詳細分析まで、一画面で体験できるデモンストレーション版です</p>
+            </div>
+            
+            <div class="step-badge">企業向け心理アセスメント</div>
+            <h1 class="title">こころのキャンバス診断 - 完全版</h1>
+            <p class="subtitle">
+                従業員の心理状態を深く理解し、早期離職防止や職場環境改善に活用する包括的なアセスメントシステムです。
+                このデモでは、診断から詳細な分析結果まで全ての機能を体験いただけます。
+            </p>
+            
+            <div class="profile-section">
+                <div class="form-group">
+                    <label class="form-label" for="userName">お名前</label>
+                    <input type="text" id="userName" class="glass-input" placeholder="お名前をお聞かせください" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="userAge">年齢</label>
+                    <input type="number" id="userAge" class="glass-input" placeholder="年齢をお聞かせください" min="18" max="100" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">お仕事・所属</label>
+                    <div class="department-grid">
+                        <div class="dept-card" data-department="creative">
+                            <div class="dept-icon">🎨</div>
+                            <div class="dept-title">クリエイティブ</div>
+                            <div class="dept-desc">デザイン・企画・制作</div>
+                        </div>
+                        <div class="dept-card" data-department="tech">
+                            <div class="dept-icon">💻</div>
+                            <div class="dept-title">技術・IT</div>
+                            <div class="dept-desc">開発・エンジニア・IT</div>
+                        </div>
+                        <div class="dept-card" data-department="sales">
+                            <div class="dept-icon">📈</div>
+                            <div class="dept-title">営業・接客</div>
+                            <div class="dept-desc">営業・販売・カスタマーサポート</div>
+                        </div>
+                        <div class="dept-card" data-department="manager">
+                            <div class="dept-icon">👥</div>
+                            <div class="dept-title">管理・マネジメント</div>
+                            <div class="dept-desc">管理職・リーダー・経営</div>
+                        </div>
+                        <div class="dept-card" data-department="general">
+                            <div class="dept-icon">📋</div>
+                            <div class="dept-title">事務・一般職</div>
+                            <div class="dept-desc">事務・経理・総務</div>
+                        </div>
+                        <div class="dept-card" data-department="parttime">
+                            <div class="dept-icon">⏰</div>
+                            <div class="dept-title">パート・アルバイト</div>
+                            <div class="dept-desc">パート・契約・フリーランス</div>
+                        </div>
+                        <div class="dept-card" data-department="support">
+                            <div class="dept-icon">🤝</div>
+                            <div class="dept-title">サポート・ケア</div>
+                            <div class="dept-desc">介護・医療・教育・支援</div>
+                        </div>
+                        <div class="dept-card" data-department="student">
+                            <div class="dept-icon">📚</div>
+                            <div class="dept-title">学生</div>
+                            <div class="dept-desc">大学生・専門学生・院生</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="nav-buttons">
+                <div></div>
+                <button class="glass-button btn-next" id="startAssessment" disabled>診断を始める →</button>
+            </div>
+        </div>
+
+        <!-- Question Section -->
+        <div class="glass-card question-section" id="questionSection">
+            <div class="step-badge" id="questionStep">質問 1 / 20</div>
+            <h2 class="question-title" id="questionTitle"></h2>
+            <p class="question-subtitle" id="questionSubtitle"></p>
+            
+            <!-- Choice Questions -->
+            <div class="choices-container" id="choicesContainer"></div>
+            
+            <!-- Free Text Questions -->
+            <textarea class="glass-textarea hidden" id="freeTextArea" placeholder="お気持ちを自由にお聞かせください..."></textarea>
+            
+            <div class="nav-buttons">
+                <button class="glass-button btn-back" id="prevButton" onclick="previousQuestion()">← 前へ</button>
+                <button class="glass-button btn-next" id="nextButton" onclick="nextQuestion()" disabled>次へ →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // キラキラエフェクト生成
+        function createSparkles() {
+            for (let i = 0; i < 15; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(sparkle);
+            }
+        }
+
+        // Japanese Department Questions
+        const departmentQuestions = {
+            creative: [
+                "最近、お仕事で創作する喜びを感じていますか？",
+                "あなたのアイデアが周りの方に評価されていると感じますか？",
+                "新しいプロジェクトに取り組むとき、ワクワクしますか？",
+                "行き詰まりを感じることはよくありますか？",
+                "お仕事で自由に表現できていると感じますか？",
+                "今の目標がはっきりしていると思いますか？",
+                "最近の作品に満足していますか？",
+                "周りからの意見やアドバイスをもらえていますか？",
+                "チームの方向性に共感できていますか？",
+                "お仕事にやりがいを感じていますか？"
+            ],
+            tech: [
+                "今のスキルに自信を持っていますか？",
+                "お仕事の役割がはっきりしていると思いますか？",
+                "技術的なチャレンジを楽しめていますか？",
+                "難しい問題を解決できたとき、達成感を感じますか？",
+                "あなたの貢献が認められていると感じますか？",
+                "今の仕事量は適切だと思いますか？",
+                "必要なツールや環境が整っていると感じますか？",
+                "お疲れを感じることがよくありますか？",
+                "スキルアップのサポートを受けられていますか？",
+                "お仕事が将来の目標に繋がっていると感じますか？"
+            ],
+            sales: [
+                "お客様とのやりとりに満足していますか？",
+                "上司や管理者に理解してもらえていると感じますか？",
+                "目標や期待値がはっきりしていると思いますか？",
+                "お仕事の後、精神的にお疲れを感じますか？",
+                "お客様から信頼されていると感じますか？",
+                "お客様の課題を解決できる自信がありますか？",
+                "お仕事の価値を感じられない時がありますか？",
+                "日々の業務量は適切だと思いますか？",
+                "同僚からのサポートを感じられていますか？",
+                "この職種での将来に希望を持っていますか？"
+            ],
+            manager: [
+                "リーダーとしての判断に自信を持っていますか？",
+                "チームメンバーの気持ちを理解できていると思いますか？",
+                "上層部との連携がうまくいっていると感じますか？",
+                "チーム内の問題に対処できる自信がありますか？",
+                "部下やメンバーからの信頼を感じられていますか？",
+                "自分のリーダーシップについて振り返ることがありますか？",
+                "責任によるストレスは管理できていると思いますか？",
+                "状況に応じてやり方を変えることができていますか？",
+                "チームとのコミュニケーションはうまくいっていますか？",
+                "あなたのビジョンがチームに伝わっていると感じますか？"
+            ],
+            general: [
+                "毎日の業務にやりがいを感じていますか？",
+                "お仕事に意味を感じられていますか？",
+                "職場でプレッシャーを感じることがよくありますか？",
+                "上司からのサポートを感じられていますか？",
+                "お仕事の期待値がはっきりしていると思いますか？",
+                "成長の機会があると感じていますか？",
+                "職場で孤独を感じることがありますか？",
+                "今の業務量は適切だと思いますか？",
+                "会議や打ち合わせで意見を言いやすいと感じますか？",
+                "仕事とプライベートのバランスに希望を持っていますか？"
+            ],
+            parttime: [
+                "職場で平等に扱われていると感じますか？",
+                "お仕事の安定性に安心感を持っていますか？",
+                "毎日の役割がはっきりしていると思いますか？",
+                "正社員の方からも大切にされていると感じますか？",
+                "チームの情報共有から除外されることがありますか？",
+                "シフトや勤務時間は調整しやすいと思いますか？",
+                "困ったときにサポートを受けられていますか？",
+                "将来への不安を感じることがよくありますか？",
+                "お仕事の柔軟性に満足していますか？",
+                "職場やチームとの繋がりを感じられていますか？"
+            ],
+            support: [
+                "お仕事にやりがいと充実感を感じていますか？",
+                "あなたの努力が認められていると感じますか？",
+                "感情的な負担を感じることがよくありますか？",
+                "困難な状況でチームからのサポートを感じられていますか？",
+                "相手の方との適切な距離を保てていると思いますか？",
+                "共感しすぎずに自分を守ることができていますか？",
+                "複雑な状況に対処する準備ができていると感じますか？",
+                "職場環境は安全だと感じていますか？",
+                "大変な一日の後、心をリセットする時間がありますか？",
+                "あなたのお仕事が社会に良い影響を与えていると感じますか？"
+            ],
+            student: [
+                "最近の学業に満足していますか？",
+                "将来の目標がはっきりしていると思いますか？",
+                "勉強や課題のプレッシャーを感じることがよくありますか？",
+                "先生や教授からのサポートを感じられていますか？",
+                "クラスメートや同級生との関係は良好ですか？",
+                "自分の専攻や分野に興味を持ち続けていますか？",
+                "課外活動やサークルに参加して楽しんでいますか？",
+                "学業とプライベートのバランスは取れていますか？",
+                "就職や進路について不安を感じることがありますか？",
+                "大学生活全体に満足していますか？"
+            ]
+        };
+
+        // Japanese Reflection Questions (11-19)
+        const reflectionQuestions = [
+            "最近、ご自身の中で何か変化を感じることはありますか？",
+            "誰にも話していないけれど、心に引っかかっていることはありますか？",
+            "「これで本当に大丈夫かな？」と思う瞬間はありますか？",
+            "今、我慢していることや無理をしていることはありますか？",
+            "最近気になっていることを、うまく言葉にできないことはありますか？",
+            "最近、自分を褒めてあげたいと思った瞬間はありましたか？",
+            "本当はやりたいのに、できずにいることはありますか？",
+            "もし一つだけ、周りの人に分かってもらいたいことがあるとしたら？",
+            "今、誰かに伝えたいメッセージがあるとしたら、どんなことですか？"
+        ];
+
+        // Heart Landscape Question (20)
+        const heartQuestion = {
+            title: "あなたの心の風景",
+            subtitle: "今のあなたの心を、風景や場面として自由に表現してみてください。色、音、雰囲気、天気、人の存在など、心に浮かんだイメージを3〜5行で描いてみてください。",
+            placeholder: "夕暮れの静かな森... 波が優しく岸辺に寄せている... 暖かい光に包まれた部屋... 雨上がりの虹... どんなイメージでも大丈夫です..."
+        };
+
+        // Global variables
+        let currentQuestion = 0;
+        let selectedDepartment = '';
+        let userProfile = {};
+        let answers = [];
+        let currentQuestions = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            createSparkles();
+            setupDepartmentSelection();
+            setupStartButton();
+        });
+
+        function setupDepartmentSelection() {
+            const deptCards = document.querySelectorAll('.dept-card');
+            
+            deptCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    deptCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    selectedDepartment = this.dataset.department;
+                    checkStartButtonState();
+                });
+            });
+
+            document.getElementById('userName').addEventListener('input', checkStartButtonState);
+            document.getElementById('userAge').addEventListener('input', checkStartButtonState);
+        }
+
+        function checkStartButtonState() {
+            const name = document.getElementById('userName').value.trim();
+            const age = document.getElementById('userAge').value;
+            const startButton = document.getElementById('startAssessment');
+            
+            if (name && age && selectedDepartment) {
+                startButton.disabled = false;
+            } else {
+                startButton.disabled = true;
+            }
+        }
+
+        function setupStartButton() {
+            document.getElementById('startAssessment').addEventListener('click', function() {
+                userProfile = {
+                    name: document.getElementById('userName').value.trim(),
+                    age: parseInt(document.getElementById('userAge').value),
+                    department: selectedDepartment
+                };
+                
+                startAssessment();
+            });
+        }
+
+        function buildQuestionsArray() {
+            const deptQuestions = departmentQuestions[selectedDepartment];
+            
+            currentQuestions = [
+                ...deptQuestions.map(q => ({ type: 'choice', question: q })),
+                ...reflectionQuestions.map(q => ({ type: 'text', question: q })),
+                {
+                    type: 'text',
+                    question: heartQuestion.title,
+                    subtitle: heartQuestion.subtitle,
+                    placeholder: heartQuestion.placeholder
+                }
+            ];
+            
+            answers = new Array(currentQuestions.length).fill('');
+        }
+
+        function startAssessment() {
+            buildQuestionsArray();
+            
+            const welcomeSection = document.getElementById('welcomeSection');
+            welcomeSection.style.transition = 'opacity 0.3s ease';
+            welcomeSection.style.opacity = '0';
+            
+            setTimeout(() => {
+                welcomeSection.style.display = 'none';
+                
+                const progressSection = document.getElementById('progressSection');
+                progressSection.style.display = 'block';
+                
+                const questionSection = document.getElementById('questionSection');
+                questionSection.style.display = 'block';
+                questionSection.classList.add('active');
+                
+                setTimeout(() => {
+                    showQuestion(0);
+                }, 100);
+                
+            }, 300);
+        }
+
+        function showQuestion(questionIndex) {
+            currentQuestion = questionIndex;
+            const question = currentQuestions[questionIndex];
+            
+            updateProgress();
+            
+            document.getElementById('questionStep').textContent = `質問 ${questionIndex + 1} / ${currentQuestions.length}`;
+            document.getElementById('questionTitle').textContent = question.question;
+            document.getElementById('questionSubtitle').textContent = question.subtitle || '';
+            
+            const choicesContainer = document.getElementById('choicesContainer');
+            const freeTextArea = document.getElementById('freeTextArea');
+            
+            choicesContainer.innerHTML = '';
+            freeTextArea.classList.add('hidden');
+            
+            if (question.type === 'choice') {
+                showChoiceQuestion();
+            } else {
+                showTextQuestion(question);
+            }
+            
+            updateNavigationButtons();
+            restorePreviousAnswer();
+        }
+
+        function showChoiceQuestion() {
+            const choicesContainer = document.getElementById('choicesContainer');
+            const choices = [
+                "とてもそう思う",
+                "そう思う", 
+                "どちらでもない",
+                "そう思わない",
+                "全くそう思わない"
+            ];
+
+            choices.forEach((choice, index) => {
+                const button = document.createElement('button');
+                button.className = 'choice-button';
+                button.textContent = choice;
+                button.addEventListener('click', () => selectChoice(index, choice));
+                choicesContainer.appendChild(button);
+            });
+        }
+
+        function showTextQuestion(question) {
+            const textArea = document.getElementById('freeTextArea');
+            textArea.classList.remove('hidden');
+            textArea.placeholder = question.placeholder || 'お気持ちを自由にお聞かせください...';
+            textArea.addEventListener('input', updateTextAnswer);
+        }
+
+        function selectChoice(index, choice) {
+            document.querySelectorAll('.choice-button').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            document.querySelectorAll('.choice-button')[index].classList.add('selected');
+            answers[currentQuestion] = choice;
+            document.getElementById('nextButton').disabled = false;
+        }
+
+        function updateTextAnswer() {
+            const textArea = document.getElementById('freeTextArea');
+            answers[currentQuestion] = textArea.value.trim();
+            
+            const nextButton = document.getElementById('nextButton');
+            nextButton.disabled = !textArea.value.trim();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQuestion + 1) / currentQuestions.length) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `質問 ${currentQuestion + 1} / ${currentQuestions.length}`;
+        }
+
+        function updateNavigationButtons() {
+            const prevButton = document.getElementById('prevButton');
+            const nextButton = document.getElementById('nextButton');
+            
+            prevButton.style.visibility = currentQuestion === 0 ? 'hidden' : 'visible';
+            nextButton.textContent = currentQuestion === currentQuestions.length - 1 ? '診断を完了する →' : '次へ →';
+            nextButton.disabled = true;
+        }
+
+        function restorePreviousAnswer() {
+            const answer = answers[currentQuestion];
+            if (!answer) return;
+
+            const question = currentQuestions[currentQuestion];
+            
+            if (question.type === 'choice') {
+                const buttons = document.querySelectorAll('.choice-button');
+                buttons.forEach(btn => {
+                    if (btn.textContent === answer) {
+                        btn.classList.add('selected');
+                        document.getElementById('nextButton').disabled = false;
+                    }
+                });
+            } else {
+                document.getElementById('freeTextArea').value = answer;
+                document.getElementById('nextButton').disabled = false;
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion === currentQuestions.length - 1) {
+                completeAssessment();
+            } else {
+                showQuestion(currentQuestion + 1);
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestion > 0) {
+                showQuestion(currentQuestion - 1);
+            }
+        }
+
+        async function completeAssessment() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            
+            try {
+                const assessmentData = {
+                    profile: userProfile,
+                    answers: answers,
+                    timestamp: new Date().toISOString(),
+                    department_questions: answers.slice(0, 10),
+                    quiet_responses: answers.slice(10, 19),
+                    heart_landscape: answers[19]
+                };
+
+                // シミュレート: 2秒待機
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // 模擬分析結果生成
+                const mockResult = generateMockResult(assessmentData);
+                showCompleteResult(mockResult);
+                
+            } catch (error) {
+                console.error('Assessment error:', error);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }
+        }
+
+        function generateMockResult(data) {
+            // 簡単なリスク評価ロジック
+            const textResponses = data.quiet_responses.join(' ').toLowerCase();
+            const riskKeywords = ['疲れ', 'ストレス', '不安', '辛い', '大変', '心配'];
+            const riskCount = riskKeywords.filter(word => textResponses.includes(word)).length;
+            const hasAlert = riskCount >= 2;
+
+            return {
+                profile: data.profile,
+                alert: hasAlert,
+                alert_reason: hasAlert ? "複数の懸念指標が検出されました" : null,
+                quiet_analysis: {
+                    overview: hasAlert ? 
+                        `${data.profile.department}部門での業務において、現在心理的な負荷が確認されます。` :
+                        `${data.profile.department}部門での業務において、安定した心理状態が確認されます。`,
+                    characteristics: hasAlert ? 
+                        ["高い責任感", "率直な問題意識", "改善への意欲"] :
+                        ["バランスの取れた視点", "前向きな姿勢", "安定した適応"],
+                    quiet_analysis: hasAlert ?
+                        `${data.profile.name}様の回答から、職場環境において一定の心理的負荷が読み取れます。適切なサポートと継続的なフォローアップが必要と考えられます。` :
+                        `${data.profile.name}様の回答から、健全な職場適応が確認されます。現在の良好な状態の維持が推奨されます。`,
+                    diagnostic_tags: hasAlert ? 
+                        ["support_needed", "stress_management", "follow_up_required"] :
+                        ["stable_state", "positive_adaptation", "maintenance_focus"],
+                    alert_indicators: hasAlert ? 
+                        ["高いストレスレベル", "心理的負荷の蓄積"] : []
+                },
+                final_diagnosis: generateDiagnosis(data.profile, hasAlert),
+                image_prompt: `Beautiful landscape inspired by: ${data.heart_landscape}`,
+                timestamp: new Date().toISOString()
+            };
+        }
+
+        function generateDiagnosis(profile, hasAlert) {
+            if (hasAlert) {
+                return `## ${profile.name}様の心理アセスメント結果
+
+### エグゼクティブサマリー
+現在の心理状態において、職場環境からの心理的負荷が確認されています。早期の介入とサポートが推奨されます。
+
+### 主要な発見事項
+• ${profile.department}部門特有の業務ストレスが影響している可能性
+• 複数の懸念指標が同時に検出されている状況
+• 本人の問題認識と改善意欲は良好
+
+### 推奨事項
+1. **immediate**: 上司またはHR担当者との面談設定
+2. **short-term**: 業務負荷の見直しと調整
+3. **long-term**: 定期的なメンタルヘルスチェック
+
+### 次のステップ
+専門カウンセラーとの相談を通じた詳細なアセスメントと個別サポートプランの策定を推奨します。`;
+            } else {
+                return `## ${profile.name}様の心理アセスメント結果
+
+### エグゼクティブサマリー
+現在の心理状態は安定しており、職場環境への良好な適応が確認されています。
+
+### 主要な発見事項
+• ${profile.department}部門での業務に対する前向きな取り組み
+• バランスの取れた心理状態の維持
+• 継続的な成長意欲と安定した職場適応
+
+### 推奨事項
+1. **maintenance**: 現在の良好な状態の継続
+2. **enhancement**: 更なる成長機会の提供
+3. **preventive**: 定期的なセルフケアの継続
+
+### 次のステップ
+現在の良好な状態を維持しつつ、半年後の定期アセスメントで継続的なモニタリングを推奨します。`;
+            }
+        }
+
+        function showCompleteResult(result) {
+            const container = document.querySelector('.container');
+            
+            const resultHTML = `
+                <div class="glass-card" id="finalResult">
+                    <div class="step-badge">${result.alert ? '⚠️ 要注意' : '✅ 診断完了'}</div>
+                    <h2 class="title">${result.alert ? '詳細分析が必要です' : '心理アセスメント完了'}</h2>
+                    <p class="subtitle">${result.profile.name}様の包括的な心理状態分析結果</p>
+                    
+                    ${result.alert ? `
+                    <div class="alert-section">
+                        <h3 class="alert-title">🚨 早期介入推奨</h3>
+                        <p><strong>検出理由:</strong> ${result.alert_reason}</p>
+                        <p style="margin-top: 1rem;">
+                            この結果は専門家による詳細な評価と適切なサポートの必要性を示しています。
+                            HR部門および管理職者への報告を推奨します。
+                        </p>
+                    </div>
+                    ` : ''}
+
+                    <div class="result-section">
+                        <h3 class="result-title">🧠 心理分析結果</h3>
+                        <div class="result-content">
+                            <h4 style="color: #2d3748; margin: 1rem 0 0.5rem 0;">全体評価</h4>
+                            <p style="margin-bottom: 1rem;">${result.quiet_analysis.overview}</p>
+                            
+                            <h4 style="color: #2d3748; margin: 1rem 0 0.5rem 0;">主要特徴</h4>
+                            <ul style="margin-left: 1rem; margin-bottom: 1rem;">
+                                ${result.quiet_analysis.characteristics.map(char => `<li>${char}</li>`).join('')}
+                            </ul>
+
+                            <h4 style="color: #2d3748; margin: 1rem 0 0.5rem 0;">詳細分析</h4>
+                            <p style="margin-bottom: 1rem;">${result.quiet_analysis.quiet_analysis}</p>
+                            
+                            ${result.quiet_analysis.alert_indicators.length > 0 ? `
+                            <h4 style="color: #c53030; margin: 1rem 0 0.5rem 0;">懸念指標</h4>
+                            <ul style="margin-left: 1rem; color: #2d3748;">
+                                ${result.quiet_analysis.alert_indicators.map(indicator => `<li>${indicator}</li>`).join('')}
+                            </ul>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3 class="result-title">📋 専門的診断</h3>
+                        <div class="result-content" style="white-space: pre-line;">
+                            ${result.final_diagnosis}
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3 class="result-title">🎨 心象風景プロンプト</h3>
+                        <div class="result-content">
+                            <p style="background: rgba(255, 154, 158, 0.1); padding: 1rem; border-radius: 10px; font-style: italic;">
+                                "${result.image_prompt}"
+                            </p>
+                            <p style="margin-top: 1rem; color: #6b7280; font-size: 0.9rem;">
+                                このプロンプトがMidjourneyに送信され、あなた専用の心象風景アートが生成されます。
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="result-section">
+                        <h3 class="result-title">🏷️ 診断タグ</h3>
+                        <div class="tags-container">
+                            ${result.quiet_analysis.diagnostic_tags.map(tag => 
+                                `<span class="tag">${tag}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="nav-buttons" style="margin-top: 3rem;">
+                        ${result.alert ? `
+                        <button class="glass-button" style="background: linear-gradient(135deg, #f56565, #fc8181); color: white;" onclick="handleAlert()">
+                            📞 専門家に相談
+                        </button>
+                        <button class="glass-button btn-back" onclick="saveAndExit()">
+                            💾 結果保存
+                        </button>
+                        ` : `
+                        <button class="glass-button btn-next" onclick="downloadPDF()">
+                            📄 PDF出力
+                        </button>
+                        <button class="glass-button btn-back" onclick="viewAnalytics()">
+                            📊 統計を見る
+                        </button>
+                        `}
+                        <button class="glass-button btn-back" onclick="location.reload()">
+                            🔄 新しい診断
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = resultHTML;
+        }
+
+        function handleAlert() {
+            alert('🚨 アラート処理\n\n専門家への連絡とフォローアップ手続きが開始されます。\nHR部門に自動通知が送信されました。');
+        }
+
+        function saveAndExit() {
+            alert('💾 診断結果を安全に保存しました。\n\n企業データベースに記録され、適切な担当者に共有されます。');
+        }
+
+        function downloadPDF() {
+            alert('📄 PDF生成機能\n\n詳細な診断レポートをPDF形式でダウンロードします。');
+        }
+
+        function viewAnalytics() {
+            alert('📊 企業統計画面\n\n部署別の心理状態分析や経時変化を確認できます。');
+        }
+    </script>
+</body>
+</html>
