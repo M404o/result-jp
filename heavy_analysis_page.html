@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>企業向け心理分析結果 - Mindscape</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #2d3748;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #667eea;
+        }
+
+        .header-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .analysis-header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .employee-badge {
+            display: inline-block;
+            padding: 0.5rem 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .employee-name {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .employee-meta {
+            color: #64748b;
+            font-size: 1rem;
+        }
+
+        .loading-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 3rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(102, 126, 234, 0.3);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .loading-steps {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .loading-step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .step-icon.completed {
+            background: #10b981;
+            color: white;
+        }
+
+        .step-icon.active {
+            background: #667eea;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        .step-icon.pending {
+            background: #e2e8f0;
+            color: #94a3b8;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .step-text {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .analysis-content {
+            display: none;
+        }
+
+        .analysis-content.show {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .analysis-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border: 2px solid #f87171;
+        }
+
+        .alert-card .card-title {
+            color: #dc2626;
+        }
+
+        .alert-reason {
+            background: rgba(220, 38, 38, 0.1);
+            border: 1px solid rgba(220, 38, 38, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .alert-reason strong {
+            color: #dc2626;
+        }
+
+        .analysis-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-subtitle {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .analysis-text {
+            line-height: 1.7;
+            color: #4a5568;
+            margin-bottom: 1rem;
+        }
+
+        .characteristics-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .characteristic-item {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 0.8rem;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .tags-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: rgba(102, 126, 234, 0.2);
+            color: #4a5568;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tag.alert {
+            background: rgba(239, 68, 68, 0.2);
+            color: #dc2626;
+        }
+
+        .recommendations {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .recommendations-title {
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendation-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.8rem;
+            border-left: 3px solid #10b981;
+        }
+
+        .action-buttons {
+            grid-column: span 2;
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .action-btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+        }
+
+        .btn-secondary:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(239, 68, 68, 0.4);
+        }
+
+        .error-section {
+            background: rgba(254, 226, 226, 0.95);
+            border: 2px solid #f87171;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        .error-text {
+            color: #7f1d1d;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .retry-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .retry-btn:hover {
+            background: #b91c1c;
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .analysis-content.show {
+                grid-template-columns: 1fr;
+            }
+
+            .alert-card,
+            .action-buttons {
+                grid-column: span 1;
+            }
+
+            .loading-steps {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">🏥 Mindscape Enterprise</div>
+            <div class="header-info">
+                <span>企業向け心理分析システム</span>
+                <span>|</span>
+                <span id="currentDateTime"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Analysis Header -->
+        <div class="analysis-header">
+            <div class="employee-badge">企業向け詳細分析</div>
+            <h1 class="employee-name" id="employeeName">従業員分析結果</h1>
+            <div class="employee-meta" id="employeeMeta">分析データを読み込み中...</div>
+        </div>
+
+        <!-- Loading Section -->
+        <div class="loading-section" id="loadingSection">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">重い分析結果を取得中...</div>
+            <p style="color: #64748b;">unified_backend.pyから保存済みデータを読み込んでいます</p>
+            
+            <div class="loading-steps">
+                <div class="loading-step">
+                    <div class="step-icon completed">✓</div>
+                    <div class="step-text">診断完了</div>
+                </div>
+                <div class="loading-step">
+                    <div class="step-icon active">🧠</div>
+                    <div class="step-text">GPT分析</div>
+                </div>
+                <div class="loading-step">
+                    <div class="step-icon pending">📊</div>
+                    <div class="step-text">結果表示</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error Section -->
+        <div class="error-section" id="errorSection" style="display: none;">
+            <div class="error-title">🚨 データ取得エラー</div>
+            <div class="error-text">
+                分析結果の取得に失敗しました。<br>
+                unified_backend.pyの接続を確認してください。
+            </div>
+            <button class="retry-btn" onclick="retryLoadData()">🔄 再試行</button>
+        </div>
+
+        <!-- Analysis Content -->
+        <div class="analysis-content" id="analysisContent">
+            <!-- Alert Card (if applicable) -->
+            <div class="analysis-card alert-card" id="alertCard" style="display: none;">
+                <h2 class="card-title">🚨 緊急アラート</h2>
+                <div class="alert-reason">
+                    <strong>検出理由:</strong> <span id="alertReason"></span>
+                </div>
+                <p>この結果は専門家による詳細な評価と適切なサポートの必要性を示しています。</p>
+                <div class="recommendations">
+                    <div class="recommendations-title">🎯 緊急対応推奨</div>
+                    <div class="recommendation-item">上司またはHR担当者との面談を72時間以内に実施</div>
+                    <div class="recommendation-item">専門カウンセラーへの紹介を検討</div>
+                    <div class="recommendation-item">業務負荷の見直しと調整</div>
+                </div>
+            </div>
+
+            <!-- Psychological Analysis -->
+            <div class="analysis-card">
+                <h2 class="card-title">🧠 心理分析結果</h2>
+                
+                <div class="analysis-section">
+                    <div class="section-subtitle">全体評価</div>
+                    <div class="analysis-text" id="overviewText"></div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="section-subtitle">主要特徴</div>
+                    <div class="characteristics-list" id="characteristicsList"></div>
+                </div>
+
+                <div class="analysis-section">
+                    <div class="section-subtitle">詳細分析</div>
+                    <div class="analysis-text" id="detailedAnalysis"></div>
+                </div>
+            </div>
+
+            <!-- Professional Assessment -->
+            <div class="analysis-card">
+                <h2 class="card-title">📋 専門的診断</h2>
+                <div class="analysis-text" id="professionalDiagnosis"></div>
+                
+                <div class="analysis-section">
+                    <div class="section-subtitle">診断タグ</div>
+                    <div class="tags-container" id="diagnosticTags"></div>
+                </div>
+
+                <div class="analysis-section" id="alertIndicatorsSection" style="display: none;">
+                    <div class="section-subtitle">懸念指標</div>
+                    <div class="tags-container" id="alertIndicators"></div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn btn-danger" onclick="notifyManager()">
+                    📞 上司に緊急通知
+                </button>
+                <button class="action-btn btn-primary" onclick="scheduleInterview()">
+                    📅 面談予約
+                </button>
+                <button class="action-btn btn-secondary" onclick="exportReport()">
+                    📄 レポート出力
+                </button>
+                <button class="action-btn btn-secondary" onclick="viewDashboard()">
+                    📊 ダッシュボードに戻る
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 現在日時表示
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('currentDateTime').textContent = 
+                now.toLocaleDateString('ja-JP') + ' ' + now.toLocaleTimeString('ja-JP');
+        }
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+
+        // ページ読み込み時に分析データを取得
+        window.addEventListener('load', () => {
+            loadAnalysisData();
+        });
+
+        // 分析データ読み込み
+        async function loadAnalysisData() {
+            console.log('🔍 重い分析結果を取得中...');
+            
+            try {
+                // ステップ1: ローカルストレージから最新診断を確認
+                const latestAssessment = localStorage.getItem('latestAssessment');
+                if (latestAssessment) {
+                    const data = JSON.parse(latestAssessment);
+                    updateEmployeeInfo(data.profile);
+                }
+
+                // ステップ2: unified_backend.pyから結果取得を試行
+                await fetchFromBackend();
+                
+            } catch (error) {
+                console.error('❌ データ取得エラー:', error);
+                showError();
+            }
+        }
+
+        // バックエンドから重い分析結果取得
+        async function fetchFromBackend() {
+            console.log('📡 unified_backend.pyに接続中...');
+            
+            try {
+                // API接続テスト
+                const healthResponse = await fetch('https://mindscape-jp.onrender.com/health');
+                if (!healthResponse.ok) {
+                    throw new Error('Backend not available');
+                }
+                
+                // 結果取得
+                const resultsResponse = await fetch('https://mindscape-jp.onrender.com/api/results');
+                if (resultsResponse.ok) {
+                    const results = await resultsResponse.json();
+                    console.log('✅ バックエンドデータ取得成功:', results);
+                    
+                    if (results.data && results.data.length > 0) {
+                        // 最新の結果を表示
+                        const latestResult = results.data[results.data.length - 1];
+                        displayAnalysisResult(latestResult.result);
+                    } else {
+                        // データがない場合はモックデータで表示
+                        displayMockResult();
+                    }
+                } else {
+                    throw new Error('Results not found');
+                }
+                
+            } catch (error) {
+                console.log('⚠️ バックエンド接続失敗:', error);
+                // フォールバック: ローカルデータやモックデータで表示
+                displayMockResult();
+            }
+        }
+
+        // 従業員情報更新
+        function updateEmployeeInfo(profile) {
+            if (profile) {
+                document.getElementById('employeeName').textContent = profile.name || '不明';
+                document.getElementById('employeeMeta').textContent = 
+                    `${profile.department || '不明'} | ${profile.age || '不明'}歳 | 分析日時: ${new Date().toLocaleDateString('ja-JP')}`;
+            }
+        }
+
+        // 分析結果表示
+        function displayAnalysisResult(result) {
+            console.log('📊 分析結果表示開始:', result);
+            
+            // ローディング非表示、コンテンツ表示
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('analysisContent').classList.add('show');
+            
+            // 従業員情報
+            updateEmployeeInfo(result.profile);
+            
+            // アラート表示
+            if (result.alert) {
+                showAlert(result.alert_reason);
+            }
+            
+            // 心理分析結果
+            document.getElementById('overviewText').textContent = 
+                result.quiet_analysis?.overview || '分析結果が利用できません';
+            
+            // 主要特徴
+            const characteristicsList = document.getElementById('characteristicsList');
+            characteristicsList.innerHTML = '';
+            if (result.quiet_analysis?.characteristics) {
+                result.quiet_analysis.characteristics.forEach(char => {
+                    const item = document.createElement('div');
+                    item.className = 'characteristic-item';
+                    item.textContent = char;
+                    characteristicsList.appendChild(item);
+                });
+            }
+            
+            // 詳細分析
+            document.getElementById('detailedAnalysis').textContent = 
+                result.quiet_analysis?.quiet_analysis || '詳細分析データが利用できません';
+            
+            // 専門的診断
+            document.getElementById('professionalDiagnosis').innerHTML = 
+                result.final_diagnosis?.replace(/\n/g, '<br>') || '専門診断が利用できません';
+            
+            // 診断タグ
+            displayTags('diagnosticTags', result.quiet_analysis?.diagnostic_tags || []);
+            
+            // 懸念指標
+            if (result.quiet_analysis?.alert_indicators && result.quiet_analysis.alert_indicators.length > 0) {
+                document.getElementById('alertIndicatorsSection').style.display = 'block';
+                displayTags('alertIndicators', result.quiet_analysis.alert_indicators, true);
+            }
+            
+            console.log('✅ 分析結果表示完了');
+        }
+
+        // モック結果表示（バックエンド接続失敗時）
+        function displayMockResult() {
+            console.log('🎭 モックデータで表示中...');
+            
+            const mockResult = {
+                profile: { name: 'テストユーザー', department: '開発部', age: 30 },
+                alert: true,
+                alert_reason: 'バックエンド接続失敗のため、モックデータを表示中',
+                quiet_analysis: {
+                    overview: 'unified_backend.pyへの接続を確認してください。重い分析機能は動作していますが、表示データの取得に失敗しました。',
+                    characteristics: ['システム接続確認が必要', 'API エンドポイントの確認', 'Renderサーバーの状態確認'],
+                    quiet_analysis: 'この画面はテスト表示です。実際の重い分析結果を表示するには、unified_backend.pyとの接続を確立してください。',
+                    diagnostic_tags: ['connection_test', 'mock_data', 'backend_required'],
+                    alert_indicators: ['API接続エラー', 'データ取得失敗']
+                },
+                final_diagnosis: '## テスト表示モード\n\n実際の重い分析結果を表示するために：\n\n1. unified_backend.pyが稼働していることを確認\n2. API エンドポイントが正常に動作していることを確認\n3. 診断データが正しく保存されていることを確認\n\n現在は接続テスト用のモックデータを表示しています。'
+            };
+            
+            displayAnalysisResult(mockResult);
+        }
+
+        // アラート表示
+        function showAlert(reason) {
+            const alertCard = document.getElementById('alertCard');
+            const alertReason = document.getElementById('alertReason');
+            
+            alertCard.style.display = 'block';
+            alertReason.textContent = reason || '詳細な懸念事項が検出されました';
+        }
+
+        // タグ表示
+        function displayTags(containerId, tags, isAlert = false) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            tags.forEach(tag => {
+                const tagElement = document.createElement('div');
+                tagElement.className = isAlert ? 'tag alert' : 'tag';
+                tagElement.textContent = tag;
+                container.appendChild(tagElement);
+            });
+        }
+
+        // エラー表示
+        function showError() {
+            document.getElementById('loadingSection').style.display = 'none';
+            document.getElementById('errorSection').style.display = 'block';
+        }
+
+        // 再試行
+        function retryLoadData() {
+            document.getElementById('errorSection').style.display = 'none';
+            document.getElementById('loadingSection').style.display = 'block';
+            loadAnalysisData();
+        }
+
+        // アクション関数
+        function notifyManager() {
+            alert('🚨 上司への緊急通知を送信します\n\n• メール通知の送信\n• Slack/Teams連携\n• 緊急度レベル: 高\n• 推奨対応時間: 72時間以内');
+        }
+
+        function scheduleInterview() {
+            alert('📅 面談予約システムを開きます\n\n• カレンダー連携\n• 自動リマインダー設定\n• 面談用資料の準備\n• カウンセラー手配');
+        }
+
+        function exportReport() {
+            alert('📄 詳細レポートを出力します\n\n• PDF形式での出力\n• 専門用語解説付き\n• 推奨アクション一覧\n• フォローアップ計画');
+        }
+
+        function viewDashboard() {
+            // ダッシュボードページに戻る
+            if (confirm('📊 企業ダッシュボードに戻りますか？')) {
+                window.location.href = 'employee_data_management.html';
+            }
+        }
+    </script>
+</body>
+</html>
