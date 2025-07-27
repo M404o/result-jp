@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Heart's Canvas - Mindscape Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 3s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem 2rem;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeInUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .welcome-badge {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .heart-metaphor {
+            font-size: 1.4rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .heart-description {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .assessment-date {
+            font-size: 1rem;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .artwork-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeInLeft 1s ease-out 0.2s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .artwork-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .artwork-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .artwork-subtitle {
+            font-size: 1rem;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .artwork-display {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(45deg, 
+                #ff6b6b 0%, 
+                #feca57 25%, 
+                #48dbfb 50%, 
+                #ff9ff3 75%, 
+                #54a0ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            perspective: 1000px;
+        }
+
+        .rotating-canvas {
+            font-size: 4rem;
+            animation: rotate3D 4s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+            transform-style: preserve-3d;
+        }
+
+        @keyframes rotate3D {
+            0% { transform: rotateY(0deg) rotateX(0deg) scale(1); }
+            25% { transform: rotateY(90deg) rotateX(15deg) scale(1.1); }
+            50% { transform: rotateY(180deg) rotateX(0deg) scale(1); }
+            75% { transform: rotateY(270deg) rotateX(-15deg) scale(1.1); }
+            100% { transform: rotateY(360deg) rotateX(0deg) scale(1); }
+        }
+
+        .creating-message {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .wellness-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeInRight 1s ease-out 0.4s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .wellness-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .wellness-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .wellness-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#48bb78 0% 75%, #e2e8f0 75% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto 2rem;
+            animation: rotateCircle 3s ease-in-out infinite;
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+
+        @keyframes rotateCircle {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.05); }
+        }
+
+        .wellness-circle::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .wellness-score {
+            position: relative;
+            z-index: 1;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .wellness-insights {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .insight-item {
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            animation: slideInRight 0.6s ease-out;
+            animation-delay: calc(var(--item-index) * 0.1s);
+            animation-fill-mode: both;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            animation: bounce 2s ease-in-out infinite;
+            animation-delay: calc(var(--item-index) * 0.3s);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .insight-text {
+            font-size: 0.95rem;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+
+        /* ===============================
+           💕 企業内ギャラリーセクション
+           =============================== */
+        .gallery-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out 0.8s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .gallery-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .gallery-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .gallery-subtitle {
+            font-size: 1rem;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .gallery-item {
+            position: relative;
+            width: 100%;
+            height: 120px;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            animation: galleryItemAppear 0.6s ease-out;
+            animation-delay: calc(var(--item-index) * 0.1s);
+            animation-fill-mode: both;
+        }
+
+        @keyframes galleryItemAppear {
+            from { opacity: 0; transform: scale(0.8) translateY(20px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .gallery-item:hover {
+            transform: scale(1.05) translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        .gallery-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, rgba(255,255,255,0.1), rgba(255,255,255,0.3));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover::before {
+            opacity: 1;
+        }
+
+        .gallery-item-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .gallery-item-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .gallery-item-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .gallery-item-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .gallery-item-4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .gallery-item-5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .gallery-item-6 { background: linear-gradient(135deg, #a8edea, #fed6e3); }
+        .gallery-item-7 { background: linear-gradient(135deg, #ff9a9e, #fecfef); }
+        .gallery-item-8 { background: linear-gradient(135deg, #ffecd2, #fcb69f); }
+
+        .gallery-meta {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            text-align: center;
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-meta {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gallery-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            border-top: 1px solid rgba(102, 126, 234, 0.1);
+        }
+
+        .gallery-count {
+            color: #667eea;
+            font-weight: 600;
+        }
+
+        .gallery-update {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .action-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            animation: fadeInUp 1s ease-out 1s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .action-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .action-subtitle {
+            font-size: 1rem;
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                padding: 1rem;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.8rem;
+            }
+
+            .gallery-item {
+                height: 100px;
+            }
+
+            .gallery-item-content {
+                font-size: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .rotating-canvas {
+                font-size: 3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <header class="header-section">
+            <div class="welcome-badge">Your Heart's Journey</div>
+            <h1 class="main-title">Your Inner Landscape</h1>
+            <p class="heart-metaphor" id="heartMetaphor">"Gentle waves meeting a quiet shore under starlight"</p>
+            <p class="heart-description" id="heartDescription">
+                Your heart today feels like gentle waves touching a quiet shore. 
+                There's peace within movement, and you're in a state of quiet contemplation.
+            </p>
+            <div class="assessment-date">Assessment completed on <span id="currentDate"></span></div>
+        </header>
+
+        <div class="main-content">
+            <div class="artwork-section">
+                <div class="artwork-header">
+                    <h2 class="artwork-title">Your Heart's Canvas</h2>
+                    <p class="artwork-subtitle">Crafting your unique landscape</p>
+                </div>
+
+                <div class="artwork-display">
+                    <div class="rotating-canvas">🎨</div>
+                    <div class="creating-message">
+                        Your personalized emotional landscape is being crafted into beautiful artwork.
+                        You'll be notified once it's ready. ✨
+                    </div>
+                </div>
+            </div>
+
+            <div class="wellness-section">
+                <div class="wellness-header">
+                    <h2 class="wellness-title">Today's Wellness</h2>
+                </div>
+
+                <div class="wellness-circle">
+                    <div class="wellness-score" id="wellnessScore">Good</div>
+                </div>
+
+                <div class="wellness-insights">
+                    <div class="insight-item" style="--item-index: 0;">
+                        <div class="insight-icon" style="--item-index: 0;">🌊</div>
+                        <div class="insight-text">You're in a calm yet thoughtful state, processing emotions with grace and patience.</div>
+                    </div>
+
+                    <div class="insight-item" style="--item-index: 1;">
+                        <div class="insight-icon" style="--item-index: 1;">⭐</div>
+                        <div class="insight-text">You're listening to your inner voice and honoring your natural rhythm.</div>
+                    </div>
+
+                    <div class="insight-item" style="--item-index: 2;">
+                        <div class="insight-icon" style="--item-index: 2;">🌱</div>
+                        <div class="insight-text">You're ready to embrace gradual growth and positive change at your own pace.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 💕 企業内ギャラリーセクション -->
+        <div class="gallery-section">
+            <div class="gallery-header">
+                <h2 class="gallery-title">💝 Today's Heart Gallery</h2>
+                <p class="gallery-subtitle">Beautiful landscapes from your team (anonymized)</p>
+            </div>
+
+            <div class="gallery-grid">
+                <div class="gallery-item gallery-item-1" style="--item-index: 0;" onclick="viewGalleryItem(1)">
+                    <div class="gallery-item-content">🌊</div>
+                    <div class="gallery-meta">Ocean Waves</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-2" style="--item-index: 1;" onclick="viewGalleryItem(2)">
+                    <div class="gallery-item-content">🌸</div>
+                    <div class="gallery-meta">Spring Garden</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-3" style="--item-index: 2;" onclick="viewGalleryItem(3)">
+                    <div class="gallery-item-content">🌙</div>
+                    <div class="gallery-meta">Moonlit Night</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-4" style="--item-index: 3;" onclick="viewGalleryItem(4)">
+                    <div class="gallery-item-content">⭐</div>
+                    <div class="gallery-meta">Starry Sky</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-5" style="--item-index: 4;" onclick="viewGalleryItem(5)">
+                    <div class="gallery-item-content">🍃</div>
+                    <div class="gallery-meta">Forest Path</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-6" style="--item-index: 5;" onclick="viewGalleryItem(6)">
+                    <div class="gallery-item-content">🎭</div>
+                    <div class="gallery-meta">Theater Dreams</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-7" style="--item-index: 6;" onclick="viewGalleryItem(7)">
+                    <div class="gallery-item-content">🌈</div>
+                    <div class="gallery-meta">Rainbow Bridge</div>
+                </div>
+                
+                <div class="gallery-item gallery-item-8" style="--item-index: 7;" onclick="viewGalleryItem(8)">
+                    <div class="gallery-item-content">🔥</div>
+                    <div class="gallery-meta">Warm Hearth</div>
+                </div>
+            </div>
+
+            <div class="gallery-stats">
+                <div class="gallery-count">8 artworks created today</div>
+                <div class="gallery-update">Updated 2 minutes ago</div>
+            </div>
+        </div>
+
+        <div class="action-section">
+            <h2 class="action-title">Take Your Results</h2>
+            <p class="action-subtitle">
+                Download your assessment results and keep a record of your emotional journey.
+                We'll notify you once your personalized artwork is ready.
+            </p>
+            <div class="action-buttons">
+                <button class="action-btn btn-primary" onclick="downloadResults()">
+                    📊 Download Results
+                </button>
+                <button class="action-btn btn-secondary" onclick="scheduleFollowUp()">
+                    📅 Schedule Follow-up
+                </button>
+                <button class="action-btn btn-secondary" onclick="viewFullGallery()">
+                    🎨 View Full Gallery
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // キラキラエフェクト生成
+        function createSparkles() {
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(sparkle);
+            }
+        }
+
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Simulate dynamic wellness score animation
+        window.addEventListener('load', () => {
+            createSparkles();
+            
+            setTimeout(() => {
+                const wellnessCircle = document.querySelector('.wellness-circle');
+                wellnessCircle.style.background = 'conic-gradient(#48bb78 0% 75%, #e2e8f0 75% 100%)';
+                wellnessCircle.style.transition = 'background 2s ease-out';
+            }, 1000);
+        });
+
+        // ギャラリーアイテムクリック
+        function viewGalleryItem(index) {
+            const items = ['Ocean Waves', 'Spring Garden', 'Moonlit Night', 'Starry Sky', 'Forest Path', 'Theater Dreams', 'Rainbow Bridge', 'Warm Hearth'];
+            const emojis = ['🌊', '🌸', '🌙', '⭐', '🍃', '🎭', '🌈', '🔥'];
+            
+            // メインキャンバスを一時的に変更
+            const canvas = document.querySelector('.rotating-canvas');
+            const originalEmoji = canvas.textContent;
+            
+            canvas.textContent = emojis[index - 1];
+            canvas.style.transform = 'scale(1.2)';
+            
+            // メッセージ更新
+            const message = document.querySelector('.creating-message');
+            const originalMessage = message.innerHTML;
+            message.innerHTML = `Viewing: ${items[index - 1]} ✨<br><small>Click elsewhere to return to your canvas</small>`;
+            
+            setTimeout(() => {
+                canvas.textContent = originalEmoji;
+                canvas.style.transform = '';
+                message.innerHTML = originalMessage;
+            }, 3000);
+        }
+
+        function downloadResults() {
+            // 実際のダウンロード機能をここに実装
+            const resultData = {
+                date: new Date().toISOString(),
+                wellness_score: document.getElementById('wellnessScore').textContent,
+                metaphor: document.getElementById('heartMetaphor').textContent,
+                description: document.getElementById('heartDescription').textContent,
+                gallery_count: 8
+            };
+            
+            const blob = new Blob([JSON.stringify(resultData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mindscape-results-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function scheduleFollowUp() {
+            alert('Follow-up Scheduling:\n\n• Monthly check-ins recommended\n• Custom reminder settings\n• Calendar integration available\n• Progress tracking enabled');
+        }
+
+        function viewFullGallery() {
+            alert('Full Gallery Features:\n\n• View all team artworks\n• Filter by department\n• Track emotional trends\n• Download gallery archive\n• Compare team wellness over time');
+        }
+
+        // Random wellness scores and metaphors
+        const wellnessOptions = ['Good', 'Great', 'Stable', 'Balanced', 'Strong', 'Centered'];
+        const metaphors = [
+            '"Gentle waves meeting a quiet shore under starlight"',
+            '"A peaceful garden where thoughts bloom like morning flowers"',
+            '"Steady mountains reflecting in crystal clear waters"',
+            '"Soft sunlight filtering through ancient forest leaves"',
+            '"A warm library corner where stories whisper wisdom"',
+            '"Dancing aurora lights painting the calm night sky"'
+        ];
+        const descriptions = [
+            'Your heart today feels like gentle waves touching a quiet shore. There\'s peace within movement, and you\'re in a state of quiet contemplation.',
+            'Your mind resembles a peaceful garden this morning. Thoughts are blooming naturally, and you\'re nurturing ideas with patient care.',
+            'You embody the strength of mountains today. Steady, grounded, yet reflecting deeply on the world around you.',
+            'Your spirit feels like filtered sunlight through trees. Warm, gentle, and bringing light to whatever you encounter.',
+            'You\'re in a contemplative space today, like a cozy corner where wisdom gathers. Peaceful and introspective.',
+            'Your emotional state sparkles with quiet wonder today. Beautiful thoughts are dancing across your inner sky.'
+        ];
+
+        // Apply random selection on page load
+        window.addEventListener('load', () => {
+            const randomIndex = Math.floor(Math.random() * wellnessOptions.length);
+            document.getElementById('wellnessScore').textContent = wellnessOptions[randomIndex];
+            document.getElementById('heartMetaphor').textContent = metaphors[randomIndex];
+            document.getElementById('heartDescription').textContent = descriptions[randomIndex];
+        });
+
+        // 定期的にギャラリーを更新
+        setInterval(() => {
+            const updateElement = document.querySelector('.gallery-update');
+            if (updateElement) {
+                updateElement.textContent = 'Updated just now';
+                setTimeout(() => {
+                    updateElement.textContent = 'Updated 1 minute ago';
+                }, 2000);
+            }
+        }, 60000);
+
+    </script>
+</body>
+</html>
