@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Heart's Canvas - 心の診断結果</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #f5576c 75%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            color: #2d3748;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: white;
+            border-radius: 50%;
+            animation: sparkle 3s infinite;
+        }
+
+        @keyframes sparkle {
+            0%, 100% { opacity: 0; transform: scale(0); }
+            50% { opacity: 1; transform: scale(1); }
+        }
+
+        .results-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+        }
+
+        .header-section {
+            text-align: center;
+            margin-bottom: 3rem;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 3rem 2rem;
+            border-radius: 24px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeInUp 0.8s ease-out;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .welcome-badge {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .main-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .heart-metaphor {
+            font-size: 1.4rem;
+            color: #4a5568;
+            margin-bottom: 1rem;
+            font-style: italic;
+            font-weight: 500;
+        }
+
+        .heart-description {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .assessment-date {
+            font-size: 1rem;
+            color: #a0aec0;
+            font-style: italic;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .artwork-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeInLeft 1s ease-out 0.2s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .artwork-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .artwork-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 0.5rem;
+        }
+
+        .artwork-subtitle {
+            font-size: 1rem;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .artwork-display {
+            position: relative;
+            width: 100%;
+            height: 300px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2rem;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(45deg, 
+                #ff6b6b 0%, 
+                #feca57 25%, 
+                #48dbfb 50%, 
+                #ff9ff3 75%, 
+                #54a0ff 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            perspective: 1000px;
+        }
+
+        .rotating-canvas {
+            font-size: 4rem;
+            animation: rotate3D 4s ease-in-out infinite;
+            filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+            transform-style: preserve-3d;
+        }
+
+        @keyframes rotate3D {
+            0% { transform: rotateY(0deg) rotateX(0deg) scale(1); }
+            25% { transform: rotateY(90deg) rotateX(15deg) scale(1.1); }
+            50% { transform: rotateY(180deg) rotateX(0deg) scale(1); }
+            75% { transform: rotateY(270deg) rotateX(-15deg) scale(1.1); }
+            100% { transform: rotateY(360deg) rotateX(0deg) scale(1); }
+        }
+
+        .creating-message {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        .wellness-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            animation: fadeInRight 1s ease-out 0.4s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .wellness-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .wellness-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .wellness-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: conic-gradient(#48bb78 0% 75%, #e2e8f0 75% 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 0 auto 2rem;
+            animation: rotateCircle 3s ease-in-out infinite;
+            box-shadow: 0 10px 30px rgba(72, 187, 120, 0.3);
+        }
+
+        @keyframes rotateCircle {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.05); }
+        }
+
+        .wellness-circle::before {
+            content: '';
+            width: 90px;
+            height: 90px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .wellness-score {
+            position: relative;
+            z-index: 1;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3748;
+        }
+
+        .wellness-insights {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .insight-item {
+            padding: 1rem;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+            animation: slideInRight 0.6s ease-out;
+            animation-delay: calc(var(--item-index) * 0.1s);
+            animation-fill-mode: both;
+        }
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .insight-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            animation: bounce 2s ease-in-out infinite;
+            animation-delay: calc(var(--item-index) * 0.3s);
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .insight-text {
+            font-size: 0.95rem;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+
+        .action-section {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 24px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            text-align: center;
+            animation: fadeInUp 1s ease-out 0.6s both;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .action-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 1rem;
+        }
+
+        .action-subtitle {
+            font-size: 1rem;
+            color: #718096;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .action-btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 2px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .results-container {
+                padding: 1rem;
+            }
+
+            .main-title {
+                font-size: 2rem;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .action-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+
+            .rotating-canvas {
+                font-size: 3rem;
+            }
+        }
+
+        /* セパレート式成功メッセージ */
+        .separate-success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 2px solid rgba(34, 197, 94, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .separate-success h3 {
+            color: #059669;
+            margin-bottom: 0.5rem;
+        }
+
+        .separate-success p {
+            color: #374151;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="results-container">
+        <header class="header-section">
+            <div class="welcome-badge">Your Heart's Journey</div>
+            <h1 class="main-title">あなたの心の風景</h1>
+            <p class="heart-metaphor" id="heartMetaphor">"Gentle waves meeting a quiet shore under starlight"</p>
+            <p class="heart-description" id="heartDescription">
+                Your heart today feels like gentle waves touching a quiet shore. 
+                There's peace within movement, and you're in a state of quiet contemplation.
+            </p>
+            <div class="assessment-date">Assessment completed on <span id="currentDate"></span></div>
+        </header>
+
+        <div class="main-content">
+            <div class="artwork-section">
+                <div class="artwork-header">
+                    <h2 class="artwork-title">Your Heart's Canvas</h2>
+                    <p class="artwork-subtitle">Crafting your unique landscape</p>
+                </div>
+
+                <div class="artwork-display">
+                    <div class="rotating-canvas">🎨</div>
+                    <div class="creating-message">
+                        あなたの心象風景を美しいアートワークにしています。
+                        完成までもう少しお待ちください ✨
+                    </div>
+                </div>
+            </div>
+
+            <div class="wellness-section">
+                <div class="wellness-header">
+                    <h2 class="wellness-title">今日の心の状態</h2>
+                </div>
+
+                <div class="wellness-circle">
+                    <div class="wellness-score" id="wellnessScore">良好</div>
+                </div>
+
+                <div class="wellness-insights">
+                    <div class="insight-item" style="--item-index: 0;">
+                        <div class="insight-icon" style="--item-index: 0;">🌊</div>
+                        <div class="insight-text" id="insight1">穏やかで思慮深い状態にあり、感情を優雅に処理されています。</div>
+                    </div>
+
+                    <div class="insight-item" style="--item-index: 1;">
+                        <div class="insight-icon" style="--item-index: 1;">⭐</div>
+                        <div class="insight-text" id="insight2">内なる声に耳を傾け、自然なリズムを大切にされています。</div>
+                    </div>
+
+                    <div class="insight-item" style="--item-index: 2;">
+                        <div class="insight-icon" style="--item-index: 2;">🌱</div>
+                        <div class="insight-text" id="insight3">ゆっくりとした成長と前向きな変化を受け入れる準備ができています。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- セパレート式成功メッセージ -->
+        <div class="separate-success" id="separateSuccess" style="display: none;">
+            <h3>🎉 セパレート式システム 動作成功！</h3>
+            <p>診断データが正常に受信され、あなた専用の軽い結果を表示しています。<br>
+               詳しい心理分析は専門家側で安全に処理されています。</p>
+        </div>
+
+        <div class="action-section">
+            <h2 class="action-title">診断結果をお持ち帰り</h2>
+            <p class="action-subtitle">
+                診断結果をダウンロードして、心の成長記録として保存いただけます。
+                専用アートワークの完成もお知らせします。
+            </p>
+            <div class="action-buttons">
+                <button class="action-btn btn-primary" onclick="downloadResults()">
+                    📊 結果をダウンロード
+                </button>
+                <button class="action-btn btn-secondary" onclick="scheduleFollowUp()">
+                    📅 フォローアップ予約
+                </button>
+                <button class="action-btn btn-secondary" onclick="viewGallery()">
+                    🎨 ギャラリーを見る
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // キラキラエフェクト生成
+        function createSparkles() {
+            for (let i = 0; i < 20; i++) {
+                const sparkle = document.createElement('div');
+                sparkle.className = 'sparkle';
+                sparkle.style.left = Math.random() * 100 + '%';
+                sparkle.style.top = Math.random() * 100 + '%';
+                sparkle.style.animationDelay = Math.random() * 3 + 's';
+                document.body.appendChild(sparkle);
+            }
+        }
+
+        // 現在日時設定
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('ja-JP', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // ウェルネススコア計算
+        function calculateWellnessScore(answers) {
+            const scores = answers.slice(0, 10).map(answer => {
+                if (typeof answer === 'string' && !isNaN(answer)) {
+                    return parseInt(answer);
+                }
+                return 3; // デフォルト値
+            });
+            
+            const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+            const percentage = Math.round((average - 1) * 25); // 1-5 → 0-100%
+            
+            if (percentage >= 80) return { text: '優秀', color: '#059669' };
+            if (percentage >= 60) return { text: '良好', color: '#0891b2' };
+            if (percentage >= 40) return { text: '普通', color: '#7c3aed' };
+            if (percentage >= 20) return { text: '注意', color: '#ea580c' };
+            return { text: '要ケア', color: '#dc2626' };
+        }
+
+        // 心象風景から絵文字を選択
+        function getHeartEmoji(heartLandscape) {
+            if (!heartLandscape) return '🎨';
+            
+            const text = heartLandscape.toLowerCase();
+            if (text.includes('海') || text.includes('波') || text.includes('ocean')) return '🌊';
+            if (text.includes('花') || text.includes('桜') || text.includes('flower')) return '🌸';
+            if (text.includes('山') || text.includes('mountain')) return '🏔️';
+            if (text.includes('森') || text.includes('木') || text.includes('forest')) return '🌲';
+            if (text.includes('空') || text.includes('雲') || text.includes('sky')) return '☁️';
+            if (text.includes('星') || text.includes('夜') || text.includes('star')) return '⭐';
+            if (text.includes('太陽') || text.includes('光') || text.includes('sun')) return '☀️';
+            if (text.includes('雨') || text.includes('storm')) return '🌧️';
+            if (text.includes('暖') || text.includes('warm')) return '🔥';
+            if (text.includes('冷') || text.includes('cool')) return '❄️';
+            
+            return '🎨';
+        }
+
+        // 部署別インサイト生成
+        function generateInsights(department, wellnessLevel) {
+            const insights = {
+                creative: {
+                    high: ['創作への情熱が安定しています', '新しいアイデアが生まれやすい状態', 'インスピレーションを受け取る準備ができています'],
+                    medium: ['クリエイティブなエネルギーが安定しています', 'バランスの取れた創作活動ができています', '新しい挑戦への準備が整っています'],
+                    low: ['創作活動を通じて心を癒やす時期', 'ゆっくりとしたペースでの制作がおすすめ', '自分らしい表現を大切にしてください']
+                },
+                tech: {
+                    high: ['技術的な課題に集中できています', '新しい知識を吸収する準備ができています', 'チームワークが良好な状態です'],
+                    medium: ['安定した技術スキルを発揮しています', 'バランスの取れた学習ができています', '着実な成長を続けています'],
+                    low: ['技術習得をゆっくり進める時期', '基礎を固めることに集中してください', 'サポートを求めることも大切です']
+                },
+                sales: {
+                    high: ['顧客との良好な関係を築いています', 'コミュニケーション能力が発揮されています', '目標達成への意欲が高まっています'],
+                    medium: ['安定した営業活動ができています', 'お客様との信頼関係が構築されています', 'バランスの取れたアプローチができています'],
+                    low: ['お客様との関係をゆっくり築く時期', '自分のペースを大切にしてください', 'チームのサポートを活用してください']
+                },
+                default: {
+                    high: ['前向きなエネルギーに満ちています', '新しいチャレンジへの準備ができています', '周りとの良好な関係が築けています'],
+                    medium: ['安定した心の状態を保っています', 'バランスの取れた日々を送っています', '着実な成長を続けています'],
+                    low: ['自分を大切にする時期です', 'ゆっくりとしたペースで進んでください', 'サポートを受けることも大切です']
+                }
+            };
+            
+            const deptInsights = insights[department] || insights.default;
+            const level = wellnessLevel >= 70 ? 'high' : wellnessLevel >= 40 ? 'medium' : 'low';
+            
+            return deptInsights[level];
+        }
+
+        // セパレート式：診断データの受信と表示
+        function loadAssessmentData() {
+            try {
+                const assessmentData = localStorage.getItem('latestAssessment');
+                
+                if (assessmentData) {
+                    const data = JSON.parse(assessmentData);
+                    console.log('📊 セパレート式データ受信:', data);
+                    
+                    // セパレート式成功メッセージを表示
+                    document.getElementById('separateSuccess').style.display = 'block';
+                    
+                    // プロフィール情報を反映
+                    const profile = data.profile;
+                    
+                    // ウェルネススコア計算
+                    const wellness = calculateWellnessScore(data.answers);
+                    document.getElementById('wellnessScore').textContent = wellness.text;
+                    document.querySelector('.wellness-circle').style.background = 
+                        `conic-gradient(${wellness.color} 0% 75%, #e2e8f0 75% 100%)`;
+                    
+                    // 心象風景から絵文字を取得
+                    const heartEmoji = getHeartEmoji(data.heart_landscape);
+                    document.querySelector('.rotating-canvas').textContent = heartEmoji;
+                    
+                    // 心象風景をタイトルに反映
+                    if (data.heart_landscape && data.heart_landscape.trim()) {
+                        const shortLandscape = data.heart_landscape.substring(0, 50) + '...';
+                        document.getElementById('heartMetaphor').textContent = `"${shortLandscape}"`;
+                        document.getElementById('heartDescription').textContent = 
+                            `${profile.name}さんの心は今、${data.heart_landscape.substring(0, 100)}のような風景です。`;
+                    }
+                    
+                    // 部署別インサイト生成
+                    const insights = generateInsights(profile.department, wellness.text === '優秀' ? 80 : wellness.text === '良好' ? 60 : 30);
+                    document.getElementById('insight1').textContent = insights[0];
+                    document.getElementById('insight2').textContent = insights[1];
+                    document.getElementById('insight3').textContent = insights[2];
+                    
+                    // ウェルネス円の色も更新
+                    const circle = document.querySelector('.wellness-circle');
+                    circle.style.boxShadow = `0 10px 30px ${wellness.color}40`;
+                    
+                    console.log('✅ セパレート式データ表示完了');
+                    
+                    // データクリア（一度だけ表示）
+                    localStorage.removeItem('latestAssessment');
+                    
+                } else {
+                    console.log('ℹ️ 診断データなし - デフォルト表示');
+                }
+                
+            } catch (error) {
+                console.error('❌ セパレート式データ読み込みエラー:', error);
+            }
+        }
+
+        // ページ読み込み時に実行
+        window.addEventListener('load', () => {
+            createSparkles();
+            loadAssessmentData();
+            
+            setTimeout(() => {
+                const wellnessCircle = document.querySelector('.wellness-circle');
+                wellnessCircle.style.transition = 'all 2s ease-out';
+            }, 1000);
+        });
+
+        function downloadResults() {
+            const resultData = {
+                date: new Date().toISOString(),
+                wellness_score: document.getElementById('wellnessScore').textContent,
+                metaphor: document.getElementById('heartMetaphor').textContent,
+                description: document.getElementById('heartDescription').textContent,
+                insights: [
+                    document.getElementById('insight1').textContent,
+                    document.getElementById('insight2').textContent,
+                    document.getElementById('insight3').textContent
+                ]
+            };
+            
+            const blob = new Blob([JSON.stringify(resultData, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `heart-canvas-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function scheduleFollowUp() {
+            alert('📅 フォローアップ機能\n\n• 月次チェックインをお勧めします\n• カスタムリマインダー設定\n• カレンダー連携機能\n• 成長記録の追跡');
+        }
+
+        function viewGallery() {
+            alert('🎨 アートギャラリー\n\n• あなたの心象風景コレクション\n• 時間の変化を追跡\n• 美しいアートワークアーカイブ\n• 成長の軌跡を視覚化');
+        }
+    </script>
+</body>
+</html>
