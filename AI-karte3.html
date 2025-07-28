@@ -1,0 +1,1744 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI対話型パーソナルカルテ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+```
+    body {
+        font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Yu Gothic UI', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #2d3748;
+        overflow-x: hidden;
+    }
+
+    .chat-container {
+        width: 95%;
+        max-width: 800px;
+        height: 90vh;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 25px;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        padding: 1.5rem 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .header-title {
+        font-size: 1.6rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .header-subtitle {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+
+    .mode-switcher {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 0.3rem;
+    }
+
+    .mode-btn {
+        padding: 0.4rem 0.8rem;
+        border: none;
+        border-radius: 15px;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        font-size: 0.8rem;
+        transition: all 0.3s ease;
+    }
+
+    .mode-btn.active {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .translation-display {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.8rem 1.5rem;
+        margin-top: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .translation-title {
+        font-size: 0.8rem;
+        opacity: 0.8;
+        margin-bottom: 0.3rem;
+    }
+
+    .translation-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 2rem;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .message {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        animation: slideIn 0.5s ease-out;
+    }
+
+    .message.user {
+        flex-direction: row-reverse;
+    }
+
+    .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .avatar.ai {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+
+    .avatar.user {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 1.2rem 1.5rem;
+        border-radius: 20px;
+        position: relative;
+    }
+
+    .message.ai .message-content {
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        border-radius: 20px 20px 20px 5px;
+    }
+
+    .message.user .message-content {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.2);
+        border-radius: 20px 20px 5px 20px;
+    }
+
+    .message-text {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 0.5rem;
+    }
+
+    .message-time {
+        font-size: 0.75rem;
+        color: #64748b;
+        text-align: right;
+    }
+
+    .message.user .message-time {
+        text-align: left;
+    }
+
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem 0;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 0.3rem;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #667eea;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+        30% { transform: translateY(-10px); opacity: 1; }
+    }
+
+    .input-area {
+        padding: 1.5rem 2rem;
+        background: rgba(248, 250, 252, 0.8);
+        border-top: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+    .input-container {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+    }
+
+    .message-input {
+        flex: 1;
+        padding: 1rem 1.5rem;
+        border: 2px solid rgba(102, 126, 234, 0.2);
+        border-radius: 25px;
+        background: white;
+        font-size: 1rem;
+        font-family: inherit;
+        resize: none;
+        min-height: 50px;
+        max-height: 150px;
+        overflow-y: auto;
+        transition: all 0.3s ease;
+    }
+
+    .message-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .send-button {
+        width: 50px;
+        height: 50px;
+        border: none;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .send-button:hover:not(:disabled) {
+        transform: scale(1.1);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .quick-responses {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+        margin-top: 1rem;
+        justify-content: center;
+    }
+
+    .quick-btn {
+        padding: 0.6rem 1.2rem;
+        background: rgba(102, 126, 234, 0.1);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 20px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        color: #667eea;
+        transition: all 0.3s ease;
+    }
+
+    .quick-btn:hover {
+        background: rgba(102, 126, 234, 0.2);
+        transform: translateY(-2px);
+    }
+
+    .visual-input-section {
+        background: rgba(248, 250, 252, 0.5);
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border-radius: 15px;
+        border: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+    .visual-title {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #4a5568;
+    }
+
+    .color-mood-selector {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 0.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .color-option {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .color-option:hover {
+        transform: scale(1.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .color-option.selected {
+        border-color: #2d3748;
+        transform: scale(1.15);
+    }
+
+    .mood-slider {
+        margin-bottom: 1.5rem;
+    }
+
+    .slider-label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: #64748b;
+    }
+
+    .mood-range {
+        width: 100%;
+        height: 8px;
+        border-radius: 20px;
+        background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
+        appearance: none;
+        outline: none;
+        cursor: pointer;
+    }
+
+    .mood-range::-webkit-slider-thumb {
+        appearance: none;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: white;
+        border: 3px solid #667eea;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .analysis-panel {
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 15px;
+        padding: 1.5rem;
+        margin-top: 1rem;
+        border: 1px solid rgba(226, 232, 240, 0.5);
+    }
+
+    .analysis-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #2d3748;
+    }
+
+    .analysis-item {
+        padding: 0.8rem;
+        background: rgba(102, 126, 234, 0.05);
+        border-radius: 10px;
+        margin-bottom: 0.8rem;
+        border-left: 4px solid #667eea;
+    }
+
+    .analysis-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        margin-bottom: 0.3rem;
+    }
+
+    .analysis-value {
+        font-size: 1rem;
+        font-weight: 500;
+        color: #2d3748;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    /* 📱 完全スマホ対応 */
+    @media (max-width: 768px) {
+        body {
+            padding: 0;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            max-width: none;
+        }
+
+        .chat-header {
+            padding: 1rem;
+            text-align: left;
+        }
+
+        .header-title {
+            font-size: 1.3rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem;
+        }
+
+        .mode-switcher {
+            position: static;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .mode-btn {
+            padding: 0.6rem 1rem;
+            font-size: 0.9rem;
+            min-width: 60px;
+        }
+
+        .translation-display {
+            padding: 0.6rem 1rem;
+            margin-top: 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .chat-messages {
+            padding: 1rem 0.8rem;
+            gap: 1rem;
+        }
+
+        .message {
+            gap: 0.8rem;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+
+        .message-content {
+            max-width: 85%;
+            padding: 1rem 1.2rem;
+            font-size: 0.95rem;
+        }
+
+        .message-text {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+        }
+
+        .input-area {
+            padding: 1rem 0.8rem 1.5rem;
+        }
+
+        .visual-input-section {
+            background: rgba(248, 250, 252, 0.5);
+            padding: 0.8rem;
+            margin-top: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            display: none; /* 📱 スマホでは初期非表示 */
+        }
+
+        .visual-title {
+            font-size: 0.8rem;
+            margin-bottom: 0.6rem;
+            text-align: center;
+        }
+
+        .color-mood-selector {
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.4rem;
+            justify-items: center;
+            margin-bottom: 0.8rem;
+        }
+
+        .color-option {
+            width: 35px;
+            height: 35px;
+        }
+
+        .mood-slider {
+            margin-bottom: 0.8rem;
+        }
+
+        .slider-label {
+            font-size: 0.7rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .quick-responses {
+            flex-wrap: wrap;
+            gap: 0.4rem;
+            margin-top: 0.5rem;
+        }
+
+        .quick-btn {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.75rem;
+            border-radius: 20px;
+            flex: 1 1 calc(50% - 0.2rem);
+            text-align: center;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .input-container {
+            gap: 0.6rem;
+            margin-top: 0.8rem;
+        }
+
+        .message-input {
+            padding: 0.8rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 18px;
+            min-height: 44px;
+            line-height: 1.4;
+        }
+
+        .send-button {
+            width: 44px;
+            height: 44px;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .analysis-panel {
+            padding: 1rem;
+            margin-top: 0.8rem;
+            font-size: 0.9rem;
+        }
+
+        .analysis-title {
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+        }
+
+        .analysis-item {
+            padding: 0.6rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .analysis-label {
+            font-size: 0.75rem;
+        }
+
+        .analysis-value {
+            font-size: 0.9rem;
+        }
+
+        .typing-indicator {
+            padding: 0.8rem 0;
+            gap: 0.8rem;
+        }
+
+        .typing-dots {
+            gap: 0.25rem;
+        }
+
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+        }
+    }
+
+    /* 📱 超小型スマホ対応 (iPhone SE等) */
+    @media (max-width: 480px) {
+        .header-title {
+            font-size: 1.1rem;
+        }
+
+        .header-subtitle {
+            font-size: 0.8rem;
+        }
+
+        .mode-btn {
+            padding: 0.5rem 0.8rem;
+            font-size: 0.8rem;
+            min-width: 50px;
+        }
+
+        .color-mood-selector {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.8rem;
+        }
+
+        .color-option {
+            width: 50px;
+            height: 50px;
+        }
+
+        .quick-responses {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .quick-btn {
+            padding: 0.7rem 1rem;
+            font-size: 0.8rem;
+            width: 100%;
+        }
+
+        .message-content {
+            max-width: 90%;
+            padding: 0.8rem 1rem;
+        }
+
+        .analysis-panel {
+            padding: 0.8rem;
+        }
+    }
+
+    /* 🔧 タッチ操作の改善 */
+    @media (pointer: coarse) {
+        .mode-btn, .quick-btn, .color-option, .send-button {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .color-option {
+            cursor: pointer;
+        }
+
+        .mood-range {
+            cursor: pointer;
+        }
+
+        .mood-range::-webkit-slider-thumb {
+            cursor: pointer;
+        }
+    }
+
+    /* 🌙 ダークモード対応 */
+    @media (prefers-color-scheme: dark) {
+        body {
+            background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+        }
+
+        .chat-container {
+            background: rgba(26, 32, 44, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .message.ai .message-content {
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .message.user .message-content {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .input-area {
+            background: rgba(26, 32, 44, 0.8);
+        }
+
+        .message-input {
+            background: rgba(45, 55, 72, 0.8);
+            border-color: rgba(102, 126, 234, 0.3);
+            color: #e2e8f0;
+        }
+
+        .visual-input-section {
+            background: rgba(26, 32, 44, 0.5);
+        }
+
+        .analysis-panel {
+            background: rgba(26, 32, 44, 0.9);
+            color: #e2e8f0;
+        }
+    }
+</style>
+```
+
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="mode-switcher">
+                <button class="mode-btn active" onclick="switchMode('general')" title="一般モード">😊</button>
+                <button class="mode-btn" onclick="switchMode('business')" title="企業モード">👔</button>
+                <button class="mode-btn" onclick="switchMode('medical')" title="専門モード">👩‍⚕️</button>
+            </div>
+            <h1 class="header-title">🧠 AI対話型パーソナルカルテ</h1>
+            <p class="header-subtitle">あなたの心の状態を、自然な対話で理解します</p>
+
+```
+        <div class="translation-display" id="translationDisplay" style="display: none;">
+            <div class="translation-title">リアルタイム翻訳</div>
+            <div class="translation-text" id="translationText"></div>
+        </div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+        <div class="message ai">
+            <div class="avatar ai">🤖</div>
+            <div class="message-content">
+                <div class="message-text">
+                    こんにちは！今日はどんな感じですか？<br>
+                    気軽にお話しください。どんな小さなことでも大丈夫です。
+                </div>
+                <div class="message-time">今</div>
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            <div class="avatar ai">🤖</div>
+            <div class="typing-dots">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area">
+        <div class="visual-input-section" id="visualSection">
+            <div class="visual-title">🎨 気分を色で表現してみてください</div>
+            <div class="color-mood-selector">
+                <div class="color-option" style="background: #ef4444;" onclick="selectColor('#ef4444', 'しんどい')" title="しんどい"></div>
+                <div class="color-option" style="background: #f59e0b;" onclick="selectColor('#f59e0b', 'もやもや')" title="もやもや"></div>
+                <div class="color-option" style="background: #8b5cf6;" onclick="selectColor('#8b5cf6', 'ぼんやり')" title="ぼんやり"></div>
+                <div class="color-option" style="background: #06b6d4;" onclick="selectColor('#06b6d4', 'さっぱり')" title="さっぱり"></div>
+                <div class="color-option" style="background: #10b981;" onclick="selectColor('#10b981', 'すっきり')" title="すっきり"></div>
+                <div class="color-option" style="background: #84cc16;" onclick="selectColor('#84cc16', 'わくわく')" title="わくわく"></div>
+            </div>
+            
+            <div class="mood-slider">
+                <div class="slider-label">
+                    <span>エネルギー低い</span>
+                    <span>エネルギー高い</span>
+                </div>
+                <input type="range" class="mood-range" id="energySlider" min="1" max="10" value="5" oninput="updateMoodAnalysis()">
+            </div>
+        </div>
+
+        <div class="quick-responses" id="quickResponses">
+            <div class="quick-btn" onclick="sendQuickResponse('なんか疲れてる')">なんか疲れてる</div>
+            <div class="quick-btn" onclick="sendQuickResponse('普通かな')">普通かな</div>
+            <div class="quick-btn" onclick="sendQuickResponse('調子いい')">調子いい</div>
+            <div class="quick-btn" onclick="sendQuickResponse('よくわからない')">よくわからない</div>
+        </div>
+
+        <div class="input-container">
+            <textarea class="message-input" id="messageInput" placeholder="お気持ちを自由にお聞かせください..." rows="1" onkeypress="handleKeyPress(event)"></textarea>
+            <button class="send-button" id="sendButton" onclick="sendMessage()">📤</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentMode = 'general';
+    let conversationHistory = [];
+    let selectedColor = null;
+    let currentMood = {
+        color: null,
+        energy: 5,
+        description: ''
+    };
+
+    // モード定義
+    const modes = {
+        general: {
+            icon: '😊',
+            name: '一般モード',
+            responses: {
+                tired: 'お疲れのようですね。最近忙しかったですか？',
+                good: 'それは素晴らしいですね！何か良いことがありましたか？',
+                confused: 'そういう時もありますよね。少しずつお話ししてみませんか？'
+            }
+        },
+        business: {
+            icon: '👔',
+            name: '企業モード',
+            responses: {
+                tired: 'パフォーマンスに影響が出ているようですね。業務負荷の調整が必要かもしれません。',
+                good: 'エンゲージメントが高い状態ですね。このモチベーションを維持していきましょう。',
+                confused: '現在の業務環境について詳しく教えてください。改善点を一緒に見つけましょう。'
+            }
+        },
+        medical: {
+            icon: '👩‍⚕️',
+            name: '専門モード',
+            responses: {
+                tired: '疲労感の詳細について伺います。睡眠パターンや食欲の変化はありますか？',
+                good: '良好な精神状態を維持できていますね。現在のセルフケア方法を教えてください。',
+                confused: '症状の具体的な経過について詳しく教えてください。発症時期や変化パターンなど。'
+            }
+        }
+    };
+
+    // AIの応答パターン
+    const aiResponses = {
+        general: [
+            'そうなんですね。もう少し詳しく教えてもらえますか？',
+            'なるほど。それはどんな感じですか？',
+            'お話しくださってありがとうございます。他に気になることはありますか？',
+            'そういう時もありますよね。いつ頃からそう感じていますか？',
+            'わかります。似たような状況はこれまでにもありましたか？'
+        ],
+        business: [
+            '業務パフォーマンスへの影響を評価する必要がありますね。',
+            'チームや上司との関係性はいかがですか？',
+            'ワークライフバランスの観点から分析してみましょう。',
+            '現在の業務負荷レベルについて詳しく教えてください。',
+            'エンゲージメント向上のための改善案を検討しましょう。'
+        ],
+        medical: [
+            '症状の詳細について、もう少し具体的に教えてください。',
+            '生活リズムや食事、睡眠の状況はいかがですか？',
+            'これまでの経過と現在の状況を整理してみましょう。',
+            '他に身体的な症状や変化はありますか？',
+            '専門的な観点から、さらに詳しく伺いたいと思います。'
+        ]
+    };
+
+    // 翻訳辞書
+    const translationDict = {
+        '疲れ': {
+            general: 'お疲れ気味',
+            business: 'パフォーマンス低下傾向',
+            medical: '疲労感（倦怠感）'
+        },
+        'しんどい': {
+            general: 'つらい気持ち',
+            business: 'エンゲージメント低下',
+            medical: '抑うつ的気分'
+        },
+        'やる気がない': {
+            general: '元気が出ない',
+            business: 'モチベーション低下',
+            medical: '意欲減退・アパシー'
+        },
+        '眠れない': {
+            general: '寝つきが悪い',
+            business: 'リカバリー不足',
+            medical: '入眠困難・睡眠障害'
+        },
+        '不安': {
+            general: '心配ごと',
+            business: 'ストレス反応',
+            medical: '不安症状・不安障害'
+        }
+    };
+
+    function switchMode(mode) {
+        currentMode = mode;
+        
+        // ボタンの状態更新
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+        
+        // ヘッダー更新
+        document.querySelector('.header-subtitle').textContent = 
+            `${modes[mode].name} - ${mode === 'general' ? '優しい対話' : mode === 'business' ? 'ビジネス分析' : '専門的評価'}`;
+        
+        // 最後のメッセージを翻訳表示
+        if (conversationHistory.length > 0) {
+            const lastMessage = conversationHistory[conversationHistory.length - 1];
+            if (lastMessage.type === 'user') {
+                showTranslation(lastMessage.content);
+            }
+        }
+    }
+
+    function showTranslation(userMessage) {
+        const translationDisplay = document.getElementById('translationDisplay');
+        const translationText = document.getElementById('translationText');
+        
+        let translatedText = userMessage;
+        
+        // 翻訳辞書から該当する表現を検索
+        Object.keys(translationDict).forEach(key => {
+            if (userMessage.includes(key)) {
+                translatedText = translationDict[key][currentMode];
+            }
+        });
+        
+        translationText.textContent = `${modes[currentMode].name}表示: "${translatedText}"`;
+        translationDisplay.style.display = 'block';
+        
+        setTimeout(() => {
+            translationDisplay.style.display = 'none';
+        }, 3000);
+    }
+
+    function selectColor(color, mood) {
+        document.querySelectorAll('.color-option').forEach(option => {
+            option.classList.remove('selected');
+        });
+        event.target.classList.add('selected');
+        
+        selectedColor = color;
+        currentMood.color = color;
+        currentMood.description = mood;
+        
+        // 色選択をメッセージとして送信
+        sendQuickResponse(`気分は「${mood}」です`);
+    }
+
+    function updateMoodAnalysis() {
+        const energy = document.getElementById('energySlider').value;
+        currentMood.energy = energy;
+    }
+
+    function sendQuickResponse(response) {
+        sendUserMessage(response);
+        generateAIResponse(response);
+    }
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            sendMessage();
+        }
+    }
+
+    function sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (message) {
+            sendUserMessage(message);
+            input.value = '';
+            setTimeout(() => generateAIResponse(message), 1000);
+        }
+    }
+
+    function sendUserMessage(message) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        
+        messageDiv.innerHTML = `
+            <div class="avatar user">😊</div>
+            <div class="message-content">
+                <div class="message-text">${message}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        conversationHistory.push({
+            type: 'user',
+            content: message,
+            timestamp: new Date(),
+            mood: { ...currentMood }
+        });
+        
+        // 翻訳表示
+        showTranslation(message);
+    }
+
+    function generateAIResponse(userMessage) {
+        showTypingIndicator();
+        
+        setTimeout(() => {
+            hideTypingIndicator();
+            
+            let response = getContextualResponse(userMessage);
+            sendAIMessage(response);
+            
+            // 分析パネル更新
+            updateAnalysisPanel(userMessage);
+            
+        }, 1500 + Math.random() * 1000);
+    }
+
+    function getContextualResponse(userMessage) {
+        const responses = aiResponses[currentMode];
+        const msg = userMessage.toLowerCase();
+        
+        if (msg.includes('疲れ') || msg.includes('しんどい') || msg.includes('つらい')) {
+            return modes[currentMode].responses.tired;
+        } else if (msg.includes('いい') || msg.includes('元気') || msg.includes('調子')) {
+            return modes[currentMode].responses.good;
+        } else if (msg.includes('わからない') || msg.includes('もやもや')) {
+            return modes[currentMode].responses.confused;
+        }
+        
+        return responses[Math.floor(Math.random() * responses.length)];
+    }
+
+    function sendAIMessage(message) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai';
+        
+        messageDiv.innerHTML = `
+            <div class="avatar ai">${modes[currentMode].icon}</div>
+            <div class="message-content">
+                <div class="message-text">${message}</div>
+                <div class="message-time">${getCurrentTime()}</div>
+            </div>
+        `;
+        
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        conversationHistory.push({
+            type: 'ai',
+            content: message,
+            timestamp: new Date(),
+            mode: currentMode
+        });
+    }
+
+    function showTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'flex';
+        document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'none';
+    }
+
+    function updateAnalysisPanel(userMessage) {
+        // 既存の分析パネルを削除
+        const existingPanel = document.querySelector('.analysis-panel');
+        if (existingPanel) {
+            existingPanel.remove();
+        }
+        
+        // 新しい分析パネルを作成
+        const analysisPanel = document.createElement('div');
+        analysisPanel.className = 'analysis-panel';
+        
+        const analysis = analyzeMessage(userMessage);
+        
+        analysisPanel.innerHTML = `
+            <div class="analysis-title">📊 ${modes[currentMode].name} - リアルタイム分析</div>
+            <div class="analysis-item">
+                <div class="analysis-label">感情分析</div>
+                <div class="analysis-value">${analysis.emotion}</div>
+            </div>
+            <div class="analysis-item">
+                <div class="analysis-label">ストレス度</div>
+                <div class="analysis-value">${analysis.stress}</div>
+            </div>
+            <div class="analysis-item">
+                <div class="analysis-label">推奨アクション</div>
+                <div class="analysis-value">${analysis.action}</div>
+            </div>
+        `;
+        
+        document.querySelector('.input-area').appendChild(analysisPanel);
+    }
+
+    function analyzeMessage(message) {
+        const msg = message.toLowerCase();
+        let emotion, stress, action;
+        
+        if (currentMode === 'medical') {
+            if (msg.includes('疲れ') || msg.includes('しんどい')) {
+                emotion = '軽度抑うつ気分の可能性';
+                stress = 'レベル3/5 (中等度)';
+                action = 'PHQ-2スクリーニング推奨';
+            } else if (msg.includes('不安') || msg.includes('心配')) {
+                emotion = '不安症状の兆候';
+                stress = 'レベル4/5 (高)';
+                action = 'GAD-7評価の実施検討';
+            } else if (msg.includes('眠れない')) {
+                emotion = '睡眠障害の可能性';
+                stress = 'レベル3/5 (中等度)';
+                action = '睡眠衛生指導・専門医紹介';
+            } else {
+                emotion = '経過観察中';
+                stress = 'レベル2/5 (軽度)';
+                action = '継続的なモニタリング';
+            }
+        } else if (currentMode === 'business') {
+            if (msg.includes('疲れ') || msg.includes('しんどい')) {
+                emotion = 'エンゲージメント低下';
+                stress = 'パフォーマンス影響度: 中';
+                action = '上司との1on1面談実施';
+            } else if (msg.includes('やる気') || msg.includes('モチベーション')) {
+                emotion = 'モチベーション課題';
+                stress = '生産性リスク: 高';
+                action = '業務配分の見直し検討';
+            } else if (msg.includes('職場') || msg.includes('同僚')) {
+                emotion = '職場環境ストレス';
+                stress = 'チーム影響度: 中';
+                action = 'チームビルディング実施';
+            } else {
+                emotion = '安定的エンゲージメント';
+                stress = 'リスク度: 低';
+                action = '現状維持・定期確認';
+            }
+        } else { // general mode
+            if (msg.includes('疲れ') || msg.includes('しんどい')) {
+                emotion = 'ちょっとお疲れ気味';
+                stress = '少し注意が必要';
+                action = 'ゆっくり休息を取りましょう';
+            } else if (msg.includes('元気') || msg.includes('いい')) {
+                emotion = '良好な状態';
+                stress = '心配なし';
+                action = 'この調子を維持しましょう';
+            } else if (msg.includes('わからない')) {
+                emotion = 'ちょっと混乱気味';
+                stress = '軽度の注意';
+                action = '一緒に整理していきましょう';
+            } else {
+                emotion = '普通の状態';
+                stress = '問題なし';
+                action = 'このまま様子を見ましょう';
+            }
+        }
+        
+        return { emotion, stress, action };
+    }
+
+    function getCurrentTime() {
+        const now = new Date();
+        return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+    }
+
+    // 🎯 高度な機能: パターン認識
+    function detectPatterns() {
+        const userMessages = conversationHistory.filter(msg => msg.type === 'user');
+        
+        if (userMessages.length >= 3) {
+            const recentMessages = userMessages.slice(-3);
+            const negativeWords = ['疲れ', 'しんどい', 'つらい', '嫌', '不安'];
+            
+            let negativeCount = 0;
+            recentMessages.forEach(msg => {
+                negativeWords.forEach(word => {
+                    if (msg.content.includes(word)) negativeCount++;
+                });
+            });
+            
+            if (negativeCount >= 2) {
+                setTimeout(() => {
+                    sendAIMessage(`継続的なストレス反応を検出しました。${
+                        currentMode === 'medical' ? '専門的なサポートをお勧めします。' :
+                        currentMode === 'business' ? '職場環境の改善を検討する必要があります。' :
+                        '少し心配です。誰かに相談してみませんか？'
+                    }`);
+                }, 2000);
+            }
+        }
+    }
+
+    // 🎨 ビジュアル分析機能
+    function updateVisualAnalysis() {
+        if (selectedColor && currentMood.energy) {
+            const colorAnalysis = {
+                '#ef4444': { mood: 'ストレス状態', energy: 'low' },
+                '#f59e0b': { mood: 'もやもや状態', energy: 'medium' },
+                '#8b5cf6': { mood: 'ぼんやり状態', energy: 'medium' },
+                '#06b6d4': { mood: 'さっぱり状態', energy: 'medium' },
+                '#10b981': { mood: 'すっきり状態', energy: 'high' },
+                '#84cc16': { mood: 'わくわく状態', energy: 'high' }
+            };
+            
+            const analysis = colorAnalysis[selectedColor];
+            if (analysis) {
+                setTimeout(() => {
+                    sendAIMessage(`色と気分の分析結果: ${analysis.mood}を検出しました。エネルギーレベルとの組み合わせから、${
+                        currentMode === 'medical' ? '詳細な問診が必要かもしれません。' :
+                        currentMode === 'business' ? '業務調整を検討しましょう。' :
+                        '今の状態がよく理解できました。'
+                    }`);
+                }, 1000);
+            }
+        }
+    }
+
+    // 🚀 AIの提案機能
+    function generateSuggestions(conversationLength) {
+        if (conversationLength === 3) {
+            setTimeout(() => {
+                sendAIMessage(`${
+                    currentMode === 'medical' ? '初期評価が完了しました。より詳細な評価として、標準化された質問票の実施をお勧めします。' :
+                    currentMode === 'business' ? 'エンゲージメント評価の第一段階が完了しました。次に具体的な業務改善案を検討しましょう。' :
+                    'お話を聞かせていただき、ありがとうございます。もう少し詳しくお聞きしても良いですか？'
+                }`);
+            }, 2000);
+        } else if (conversationLength === 5) {
+            setTimeout(() => {
+                const suggestions = {
+                    medical: [
+                        '🏥 専門医受診の検討',
+                        '📊 構造化面接の実施',
+                        '💊 薬物療法の評価',
+                        '🧘 認知行動療法の検討'
+                    ],
+                    business: [
+                        '📋 業務量の調整',
+                        '👥 チーム配置の見直し',
+                        '🎯 目標設定の最適化',
+                        '📈 スキルアップ支援'
+                    ],
+                    general: [
+                        '😌 リラクゼーション',
+                        '🚶 軽い運動',
+                        '👥 信頼できる人との対話',
+                        '📚 セルフケア学習'
+                    ]
+                };
+                
+                const modeSpecificSuggestions = suggestions[currentMode];
+                const suggestionText = modeSpecificSuggestions.join('、');
+                
+                sendAIMessage(`これまでのお話から、以下のアプローチが有効かもしれません：${suggestionText}。どれか気になるものはありますか？`);
+            }, 2000);
+        }
+    }
+
+    // 🎮 キーボードショートカット
+    document.addEventListener('keydown', function(event) {
+        if (event.altKey) {
+            switch(event.key) {
+                case '1':
+                    event.preventDefault();
+                    switchMode('general');
+                    break;
+                case '2':
+                    event.preventDefault();
+                    switchMode('business');
+                    break;
+                case '3':
+                    event.preventDefault();
+                    switchMode('medical');
+                    break;
+            }
+        }
+    });
+
+    // 💾 データ保存機能
+    function saveConversation() {
+        const conversationData = {
+            timestamp: new Date().toISOString(),
+            mode: currentMode,
+            history: conversationHistory,
+            mood: currentMood,
+            analysis: getOverallAnalysis()
+        };
+        
+        localStorage.setItem('aiPersonalChart', JSON.stringify(conversationData));
+        
+        // 企業システムへの連携（シミュレーション）
+        if (currentMode === 'business') {
+            console.log('企業システムへデータ送信:', conversationData);
+        }
+    }
+
+    function getOverallAnalysis() {
+        const userMessages = conversationHistory.filter(msg => msg.type === 'user');
+        const messageCount = userMessages.length;
+        
+        const keywords = {
+            negative: ['疲れ', 'しんどい', 'つらい', '嫌', '不安', '眠れない'],
+            positive: ['いい', '元気', '楽しい', '嬉しい', '満足'],
+            neutral: ['普通', 'まあまあ', 'わからない']
+        };
+        
+        let scores = { negative: 0, positive: 0, neutral: 0 };
+        
+        userMessages.forEach(msg => {
+            keywords.negative.forEach(word => {
+                if (msg.content.includes(word)) scores.negative++;
+            });
+            keywords.positive.forEach(word => {
+                if (msg.content.includes(word)) scores.positive++;
+            });
+            keywords.neutral.forEach(word => {
+                if (msg.content.includes(word)) scores.neutral++;
+            });
+        });
+        
+        return {
+            messageCount,
+            sentiment: scores,
+            dominantMood: Object.keys(scores).reduce((a, b) => scores[a] > scores[b] ? a : b),
+            riskLevel: scores.negative > scores.positive ? 'attention' : 'normal'
+        };
+    }
+
+    // 📱 スマホ専用機能強化
+    function initMobileFeatures() {
+        // タッチイベントの最適化
+        if (window.innerWidth <= 768) {
+            console.log('📱 スマホモードで初期化');
+            
+            // スマホ用のUI調整
+            adjustForMobile();
+            
+            // タッチフィードバック追加
+            addTouchFeedback();
+            
+            // スワイプジェスチャー
+            initSwipeGestures();
+            
+            // 仮想キーボード対応
+            handleVirtualKeyboard();
+        }
+    }
+
+    function adjustForMobile() {
+        // ビューポート調整
+        const viewport = document.querySelector('meta[name="viewport"]');
+        if (viewport) {
+            viewport.content = 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+        }
+        
+        // スマホ用クラス追加
+        document.body.classList.add('mobile-mode');
+        
+        // フォーカス時のズーム防止
+        document.querySelectorAll('input, textarea').forEach(element => {
+            element.style.fontSize = '16px'; // iOSズーム防止
+        });
+        
+        // 📱 スマホ用色選択ボタン追加
+        addMobileColorToggle();
+    }
+
+    function addTouchFeedback() {
+        // タッチ時のフィードバック
+        document.querySelectorAll('.quick-btn, .color-option, .mode-btn').forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.style.transform = 'scale(0.95)';
+                this.style.transition = 'transform 0.1s ease';
+            });
+            
+            element.addEventListener('touchend', function() {
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+    }
+
+    function initSwipeGestures() {
+        let startX, startY;
+        
+        document.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
+        
+        document.addEventListener('touchend', function(e) {
+            if (!startX || !startY) return;
+            
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            
+            const diffX = startX - endX;
+            const diffY = startY - endY;
+            
+            // 横スワイプでモード切替
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 100) {
+                if (diffX > 0) {
+                    // 左スワイプ: 次のモード
+                    switchToNextMode();
+                } else {
+                    // 右スワイプ: 前のモード
+                    switchToPrevMode();
+                }
+            }
+            
+            startX = startY = null;
+        });
+    }
+
+    function switchToNextMode() {
+        const modes = ['general', 'business', 'medical'];
+        const currentIndex = modes.indexOf(currentMode);
+        const nextIndex = (currentIndex + 1) % modes.length;
+        switchMode(modes[nextIndex]);
+        
+        // フィードバック
+        navigator.vibrate && navigator.vibrate(50);
+        showMobileNotification(`${modes[nextIndex]}モードに切り替えました`);
+    }
+
+    function switchToPrevMode() {
+        const modes = ['general', 'business', 'medical'];
+        const currentIndex = modes.indexOf(currentMode);
+        const prevIndex = currentIndex === 0 ? modes.length - 1 : currentIndex - 1;
+        switchMode(modes[prevIndex]);
+        
+        // フィードバック
+        navigator.vibrate && navigator.vibrate(50);
+        showMobileNotification(`${modes[prevIndex]}モードに切り替えました`);
+    }
+
+    function handleVirtualKeyboard() {
+        // 仮想キーボード表示時の調整
+        const messageInput = document.getElementById('messageInput');
+        
+        messageInput.addEventListener('focus', function() {
+            setTimeout(() => {
+                // キーボード表示時にメッセージエリアを上に移動
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 300);
+        });
+        
+        // iOSのSafari用
+        if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+            window.addEventListener('resize', function() {
+                const chatContainer = document.querySelector('.chat-container');
+                chatContainer.style.height = window.innerHeight + 'px';
+            });
+        }
+    }
+
+    function showMobileNotification(message) {
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 25px;
+            z-index: 1001;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+            animation: slideDown 0.3s ease-out;
+        `;
+        
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideUp 0.3s ease-in';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 2000);
+    }
+
+    // 📱 音声入力機能（スマホ用）
+    function initVoiceInput() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'ja-JP';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            // 音声入力ボタンを追加
+            const voiceBtn = document.createElement('button');
+            voiceBtn.innerHTML = '🎤';
+            voiceBtn.style.cssText = `
+                position: absolute;
+                right: 60px;
+                top: 50%;
+                transform: translateY(-50%);
+                background: linear-gradient(135deg, #10b981, #059669);
+                border: none;
+                border-radius: 50%;
+                width: 40px;
+                height: 40px;
+                color: white;
+                font-size: 1rem;
+                cursor: pointer;
+                z-index: 10;
+            `;
+
+            document.querySelector('.input-container').style.position = 'relative';
+            document.querySelector('.input-container').appendChild(voiceBtn);
+
+            voiceBtn.addEventListener('click', function() {
+                recognition.start();
+                voiceBtn.innerHTML = '🔴';
+                voiceBtn.style.background = 'linear-gradient(135deg, #ef4444, #dc2626)';
+            });
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('messageInput').value = transcript;
+                voiceBtn.innerHTML = '🎤';
+                voiceBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+                
+                // 自動送信
+                setTimeout(() => {
+                    sendMessage();
+                }, 500);
+            };
+
+            recognition.onerror = function() {
+                voiceBtn.innerHTML = '🎤';
+                voiceBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+            };
+        }
+    }
+
+    // 📱 画面回転対応
+    function handleOrientationChange() {
+        window.addEventListener('orientationchange', function() {
+            setTimeout(() => {
+                // 画面回転後の調整
+                const chatContainer = document.querySelector('.chat-container');
+                chatContainer.style.height = window.innerHeight + 'px';
+                
+                // メッセージエリアのスクロール調整
+                const chatMessages = document.getElementById('chatMessages');
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }, 500);
+        });
+    }
+
+    // 📱 プルトゥリフレッシュ機能
+    function initPullToRefresh() {
+        let startY = 0;
+        let pullDistance = 0;
+        const threshold = 100;
+        
+        const chatMessages = document.getElementById('chatMessages');
+        
+        chatMessages.addEventListener('touchstart', function(e) {
+            if (chatMessages.scrollTop === 0) {
+                startY = e.touches[0].clientY;
+            }
+        });
+        
+        chatMessages.addEventListener('touchmove', function(e) {
+            if (startY !== 0) {
+                pullDistance = e.touches[0].clientY - startY;
+                
+                if (pullDistance > 0 && pullDistance < threshold) {
+                    // プル表示
+                    chatMessages.style.transform = `translateY(${pullDistance * 0.5}px)`;
+                    chatMessages.style.opacity = 1 - (pullDistance / threshold) * 0.3;
+                }
+            }
+        });
+        
+        chatMessages.addEventListener('touchend', function() {
+            if (pullDistance > threshold) {
+                // リフレッシュ実行
+                showMobileNotification('🔄 リフレッシュしています...');
+                setTimeout(() => {
+                    location.reload();
+                }, 1000);
+            }
+            
+            // リセット
+            chatMessages.style.transform = '';
+            chatMessages.style.opacity = '';
+            startY = 0;
+            pullDistance = 0;
+        });
+    }
+
+    // 📱 バッテリー状態監視
+    function initBatteryMonitoring() {
+        if ('getBattery' in navigator) {
+            navigator.getBattery().then(function(battery) {
+                if (battery.level < 0.2) {
+                    // バッテリー残量が少ない場合、省電力モード
+                    document.body.classList.add('low-battery-mode');
+                    showMobileNotification('⚡ 省電力モードを有効にしました');
+                }
+            });
+        }
+    }
+        
+        // 前回のデータを復元
+        const savedData = localStorage.getItem('aiPersonalChart');
+        if (savedData) {
+            const data = JSON.parse(savedData);
+            console.log('前回の会話データを検出:', data.timestamp);
+        }
+        
+        // メッセージ送信時の処理
+        const originalSendMessage = sendMessage;
+        sendMessage = function() {
+            originalSendMessage();
+            
+            // パターン認識
+            setTimeout(detectPatterns, 1000);
+            
+            // ビジュアル分析
+            setTimeout(updateVisualAnalysis, 1500);
+            
+            // 提案生成
+            setTimeout(() => generateSuggestions(conversationHistory.filter(msg => msg.type === 'user').length), 2000);
+            
+            // データ保存
+            setTimeout(saveConversation, 500);
+        };
+        
+        // 5分ごとの自動保存
+        setInterval(saveConversation, 300000);
+    });
+
+    // 🎯 エクスポート機能
+    function exportData() {
+        const data = {
+            session_id: `PERSONAL_CHART_${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            mode: currentMode,
+            conversation: conversationHistory,
+            mood_analysis: currentMood,
+            overall_analysis: getOverallAnalysis(),
+            recommendations: generateRecommendations()
+        };
+        
+        // CSV形式でダウンロード
+        const csvContent = convertToCSV(data);
+        downloadCSV(csvContent, `personal_chart_${data.session_id}.csv`);
+    }
+
+    function generateRecommendations() {
+        const analysis = getOverallAnalysis();
+        
+        if (currentMode === 'medical') {
+            return analysis.riskLevel === 'attention' ? 
+                ['専門医受診検討', 'PHQ-9実施', '睡眠衛生指導'] :
+                ['経過観察', '定期チェック', 'セルフケア継続'];
+        } else if (currentMode === 'business') {
+            return analysis.riskLevel === 'attention' ? 
+                ['1on1面談実施', '業務量調整', 'ストレス軽減策'] :
+                ['現状維持', '定期フォロー', 'モチベーション維持'];
+        } else {
+            return analysis.riskLevel === 'attention' ? 
+                ['専門相談検討', 'リラクゼーション', '生活リズム調整'] :
+                ['現状維持', 'セルフケア継続', '予防的アプローチ'];
+        }
+    }
+
+    function convertToCSV(data) {
+        // 簡単なCSV変換（実際にはより詳細な実装が必要）
+        const headers = ['Timestamp', 'Mode', 'Message_Type', 'Content', 'Analysis'];
+        let csv = headers.join(',') + '\n';
+        
+        data.conversation.forEach(msg => {
+            const row = [
+                msg.timestamp,
+                data.mode,
+                msg.type,
+                `"${msg.content.replace(/"/g, '""')}"`,
+                msg.analysis || ''
+            ];
+            csv += row.join(',') + '\n';
+        });
+        
+        return csv;
+    }
+
+    function downloadCSV(content, filename) {
+        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
+    }
+
+    // 🌟 最終機能: 企業システム連携
+    function connectToEnterpriseSystem() {
+        if (currentMode === 'business') {
+            const enterpriseData = {
+                employee_id: 'EMP_' + Math.random().toString(36).substr(2, 9),
+                assessment_data: getOverallAnalysis(),
+                conversation_summary: generateSummary(),
+                alert_level: getAlertLevel(),
+                recommendations: generateRecommendations()
+            };
+            
+            // 企業ダッシュボードに送信（シミュレーション）
+            console.log('企業ダッシュボードに送信:', enterpriseData);
+            
+            // 実際のシステムでは以下のようなAPI呼び出し
+            // fetch('/api/enterprise/mental-health', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify(enterpriseData)
+            // });
+        }
+    }
+
+    function generateSummary() {
+        const userMessages = conversationHistory.filter(msg => msg.type === 'user');
+        const summary = userMessages.map(msg => msg.content).join(' ');
+        
+        // 簡単な要約（実際にはより高度なNLP処理）
+        return summary.length > 100 ? summary.substring(0, 100) + '...' : summary;
+    }
+
+    function getAlertLevel() {
+        const analysis = getOverallAnalysis();
+        if (analysis.riskLevel === 'attention' && analysis.sentiment.negative > 3) {
+            return 'HIGH';
+        } else if (analysis.riskLevel === 'attention') {
+            return 'MEDIUM';
+        } else {
+            return 'LOW';
+        }
+    }
+</script>
+```
+
+</body>
+</html>
