@@ -1,0 +1,1514 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>♡ AI対話型パーソナルカルテ ♡</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, 
+                #667eea 0%, 
+                #764ba2 25%, 
+                #f093fb 50%, 
+                #f5576c 75%, 
+                #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 8s ease infinite;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 🌟 キラキラエフェクト */
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 12px;
+            animation: twinkle 2s infinite alternate;
+        }
+
+        /* 🌸 桜エフェクト */
+        .sakura {
+            position: fixed;
+            top: -50px;
+            color: #ffb3d9;
+            font-size: 16px;
+            animation: fall 10s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes twinkle {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1.2); }
+        }
+
+        @keyframes fall {
+            to {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        .chat-container {
+            width: 95%;
+            max-width: 900px;
+            height: 92vh;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 30px;
+            backdrop-filter: blur(25px);
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.9), 
+                rgba(118, 75, 162, 0.9),
+                rgba(240, 147, 251, 0.8));
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+            position: relative;
+            border-radius: 30px 30px 0 0;
+        }
+
+        .header-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #fff, #f0f0f0, #fff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: -200% center; }
+            50% { background-position: 200% center; }
+        }
+
+        .header-subtitle {
+            opacity: 0.95;
+            font-size: 1rem;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .mode-switcher {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 25px;
+            padding: 0.4rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .mode-btn {
+            padding: 0.6rem 1rem;
+            border: none;
+            border-radius: 20px;
+            background: transparent;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mode-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .mode-btn:hover::before,
+        .mode-btn.active::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .mode-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: scale(1.05);
+        }
+
+        .translation-display {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 1rem 1.5rem;
+            margin-top: 1rem;
+            border-radius: 20px;
+            border-left: 4px solid rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .translation-title {
+            font-size: 0.8rem;
+            opacity: 0.9;
+            margin-bottom: 0.4rem;
+        }
+
+        .translation-text {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 2rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .message {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            animation: messageSlide 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        @keyframes messageSlide {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .avatar {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .avatar::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            border-radius: 50%;
+            z-index: -1;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .avatar.ai {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .avatar.user {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.4);
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 1.5rem 2rem;
+            border-radius: 25px;
+            position: relative;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .message.ai .message-content {
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.2), 
+                rgba(118, 75, 162, 0.15));
+            border-radius: 25px 25px 25px 8px;
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, 
+                rgba(240, 147, 251, 0.2), 
+                rgba(245, 87, 108, 0.15));
+            border-radius: 25px 25px 8px 25px;
+            box-shadow: 0 8px 32px rgba(240, 147, 251, 0.2);
+        }
+
+        .message-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            margin-bottom: 0.8rem;
+            color: white;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .message-time {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.7);
+            text-align: right;
+        }
+
+        .message.user .message-time {
+            text-align: left;
+        }
+
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 0.4rem;
+        }
+
+        .typing-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            animation: typing 1.6s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { 
+                transform: translateY(0) scale(0.8); 
+                opacity: 0.5; 
+            }
+            30% { 
+                transform: translateY(-15px) scale(1.2); 
+                opacity: 1; 
+            }
+        }
+
+        .input-area {
+            padding: 2rem;
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.1), 
+                rgba(255, 255, 255, 0.05));
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(15px);
+        }
+
+        .visual-toggle-btn {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(240, 147, 251, 0.3);
+            border: none;
+            font-size: 1.1rem;
+            font-weight: 600;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .visual-toggle-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            transition: left 0.6s ease;
+        }
+
+        .visual-toggle-btn:hover::before {
+            left: 100%;
+        }
+
+        .visual-toggle-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 40px rgba(240, 147, 251, 0.4);
+        }
+
+        .visual-toggle-btn #visualToggleIcon {
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 1rem;
+        }
+
+        .visual-toggle-btn.expanded #visualToggleIcon {
+            transform: rotate(180deg);
+        }
+
+        .visual-input-section {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.15), 
+                rgba(255, 255, 255, 0.08));
+            padding: 2rem;
+            margin-top: 1rem;
+            border-radius: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: none;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+
+        .visual-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: white;
+            text-align: center;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-mood-selector {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+            justify-items: center;
+        }
+
+        .color-option {
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid transparent;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .color-option::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 25px;
+            height: 25px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-option:hover {
+            transform: scale(1.2) translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-option:hover::after {
+            opacity: 0.8;
+            transform: translate(-50%, -50%) scale(1.3);
+        }
+
+        .color-option.selected {
+            border-color: white;
+            transform: scale(1.3) translateY(-8px);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-option.selected::after {
+            opacity: 1;
+            content: '✨';
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            color: white;
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .mood-slider {
+            margin-bottom: 2rem;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            color: white;
+            font-weight: 500;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .mood-range {
+            width: 100%;
+            height: 12px;
+            border-radius: 25px;
+            background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
+            appearance: none;
+            outline: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .mood-range::-webkit-slider-thumb {
+            appearance: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #667eea;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .mood-range::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            margin-top: 1rem;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 1.2rem 2rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            font-size: 1.1rem;
+            font-family: inherit;
+            resize: none;
+            min-height: 55px;
+            max-height: 150px;
+            overflow-y: auto;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            color: white;
+            backdrop-filter: blur(15px);
+        }
+
+        .message-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .send-button {
+            width: 55px;
+            height: 55px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .send-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transition: all 0.4s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .send-button:hover::before {
+            width: 100%;
+            height: 100%;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: scale(1.15) translateY(-3px);
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.5);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .quick-responses {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+
+        .quick-btn {
+            padding: 0.8rem 1.5rem;
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.2), 
+                rgba(118, 75, 162, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1rem;
+            color: white;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            backdrop-filter: blur(15px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quick-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(255, 255, 255, 0.3), 
+                transparent);
+            transition: left 0.6s ease;
+        }
+
+        .quick-btn:hover::before {
+            left: 100%;
+        }
+
+        .quick-btn:hover {
+            background: linear-gradient(135deg, 
+                rgba(102, 126, 234, 0.4), 
+                rgba(118, 75, 162, 0.4));
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        /* 🔒 パスワードモーダル */
+        .password-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(15px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .password-content {
+            background: linear-gradient(135deg, 
+                rgba(255, 255, 255, 0.2), 
+                rgba(255, 255, 255, 0.1));
+            padding: 3rem;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(25px);
+            text-align: center;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .password-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .password-input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 25px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(15px);
+        }
+
+        .password-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .password-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .password-btn {
+            padding: 0.8rem 2rem;
+            border: none;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+
+        .password-btn.confirm {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .password-btn.cancel {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .password-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 📱 スマホ対応 */
+        @media (max-width: 768px) {
+            body {
+                padding: 0;
+                margin: 0;
+            }
+
+            .chat-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                max-width: none;
+            }
+
+            .chat-header {
+                padding: 1rem;
+                border-radius: 0;
+            }
+
+            .header-title {
+                font-size: 1.4rem;
+                margin-bottom: 0.3rem;
+            }
+
+            .header-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .mode-switcher {
+                position: static;
+                margin-top: 1rem;
+                justify-content: center;
+            }
+
+            .mode-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+            }
+
+            .chat-messages {
+                padding: 1rem;
+                gap: 1rem;
+            }
+
+            .avatar {
+                width: 45px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
+
+            .message-content {
+                max-width: 85%;
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .input-area {
+                padding: 1rem;
+            }
+
+            .visual-toggle-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .visual-input-section {
+                padding: 1.5rem;
+            }
+
+            .color-mood-selector {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1.5rem;
+            }
+
+            .color-option {
+                width: 70px;
+                height: 70px;
+            }
+
+            .quick-responses {
+                gap: 0.8rem;
+            }
+
+            .quick-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+                flex: 1 1 calc(50% - 0.4rem);
+            }
+
+            .message-input {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+
+            .send-button {
+                width: 50px;
+                height: 50px;
+                font-size: 1.1rem;
+            }
+        }
+
+        /* 🌙 ダークモード改良 */
+        @media (prefers-color-scheme: dark) {
+            .message-text {
+                color: #f8f9fa;
+                text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            }
+
+            .message-time {
+                color: rgba(248, 249, 250, 0.8);
+            }
+
+            .slider-label {
+                color: #f8f9fa;
+            }
+
+            .visual-title {
+                color: #f8f9fa;
+            }
+
+            .password-title {
+                color: #f8f9fa;
+            }
+        }
+
+        /* 🎨 追加エフェクト */
+        .floating-hearts {
+            position: fixed;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .heart {
+            position: absolute;
+            color: rgba(240, 147, 251, 0.6);
+            font-size: 20px;
+            animation: floatUp 3s ease-out infinite;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(180deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 🌟 星エフェクト -->
+    <div class="stars" id="stars"></div>
+    
+    <!-- 🌸 桜エフェクト -->
+    <div class="floating-hearts" id="floatingHearts"></div>
+
+    <!-- 🔒 パスワードモーダル -->
+    <div class="password-modal" id="passwordModal">
+        <div class="password-content">
+            <h2 class="password-title">🔒 専門モードへのアクセス</h2>
+            <input type="password" class="password-input" id="passwordInput" placeholder="パスワードを入力してください">
+            <div class="password-buttons">
+                <button class="password-btn confirm" onclick="checkPassword()">確認</button>
+                <button class="password-btn cancel" onclick="closePasswordModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="mode-switcher">
+                <button class="mode-btn active" onclick="switchMode('general')" title="一般モード">😊 ユーザー</button>
+                <button class="mode-btn" onclick="requestModeSwitch('business')" title="企業モード">👔 企業</button>
+                <button class="mode-btn" onclick="requestModeSwitch('medical')" title="専門モード">👩‍⚕️ 専門</button>
+            </div>
+            <h1 class="header-title">♡ AI対話型パーソナルカルテ ♡</h1>
+            <p class="header-subtitle">あなたの心に寄り添う、優しいAIカウンセラー</p>
+            
+            <div class="translation-display" id="translationDisplay" style="display: none;">
+                <div class="translation-title">✨ リアルタイム翻訳</div>
+                <div class="translation-text" id="translationText"></div>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="message ai">
+                <div class="avatar ai">🤖</div>
+                <div class="message-content">
+                    <div class="message-text">
+                        こんにちは！✨ 今日はどんな気分ですか？<br>
+                        どんな小さなことでも、お気軽にお話しくださいね。<br>
+                        あなたの心に寄り添います。💕
+                    </div>
+                    <div class="message-time">今</div>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="avatar ai">🤖</div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <button class="visual-toggle-btn" onclick="toggleVisualSection()">
+                <span id="visualToggleText">🎨 気分を色で表現してみる</span>
+                <span id="visualToggleIcon">✨</span>
+            </button>
+            
+            <div class="visual-input-section" id="visualSection">
+                <div class="visual-title">🌈 今の気分を色で教えてください</div>
+                <div class="color-mood-selector">
+                    <div class="color-option" style="background: #ef4444;" onclick="selectColor('#ef4444', 'しんどい')" title="しんどい"></div>
+                    <div class="color-option" style="background: #f59e0b;" onclick="selectColor('#f59e0b', 'もやもや')" title="もやもや"></div>
+                    <div class="color-option" style="background: #8b5cf6;" onclick="selectColor('#8b5cf6', 'ぼんやり')" title="ぼんやり"></div>
+                    <div class="color-option" style="background: #06b6d4;" onclick="selectColor('#06b6d4', 'さっぱり')" title="さっぱり"></div>
+                    <div class="color-option" style="background: #10b981;" onclick="selectColor('#10b981', 'すっきり')" title="すっきり"></div>
+                    <div class="color-option" style="background: #84cc16;" onclick="selectColor('#84cc16', 'わくわく')" title="わくわく"></div>
+                </div>
+                
+                <div class="mood-slider">
+                    <div class="slider-label">
+                        <span>💤 エネルギー低い</span>
+                        <span>⚡ エネルギー高い</span>
+                    </div>
+                    <input type="range" class="mood-range" id="energySlider" min="1" max="10" value="5" oninput="updateMoodAnalysis()">
+                </div>
+            </div>
+
+            <div class="quick-responses" id="quickResponses">
+                <div class="quick-btn" onclick="sendQuickResponse('なんか疲れてる💤')">なんか疲れてる💤</div>
+                <div class="quick-btn" onclick="sendQuickResponse('普通かな😊')">普通かな😊</div>
+                <div class="quick-btn" onclick="sendQuickResponse('調子いい✨')">調子いい✨</div>
+                <div class="quick-btn" onclick="sendQuickResponse('よくわからない🤔')">よくわからない🤔</div>
+            </div>
+
+            <div class="input-container">
+                <textarea class="message-input" id="messageInput" placeholder="あなたの気持ちを自由にお聞かせください... ✨" rows="1" onkeypress="handleKeyPress(event)"></textarea>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">💕</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentMode = 'general';
+        let conversationHistory = [];
+        let selectedColor = null;
+        let currentMood = {
+            color: null,
+            energy: 5,
+            description: ''
+        };
+        let pendingMode = null;
+
+        // パスワード設定
+        const passwords = {
+            business: 'biz2024',
+            medical: 'med2024'
+        };
+
+        // モード定義
+        const modes = {
+            general: {
+                icon: '😊',
+                name: 'ユーザーモード',
+                responses: {
+                    tired: 'お疲れのようですね💤 最近忙しかったですか？ゆっくりお話しましょう。',
+                    good: 'それは素晴らしいですね！✨ 何か良いことがあったんですか？',
+                    confused: 'そういう時もありますよね🤗 少しずつお話ししてみませんか？'
+                }
+            },
+            business: {
+                icon: '👔',
+                name: '企業モード',
+                responses: {
+                    tired: 'パフォーマンスに影響が出ているようですね📊 業務負荷の調整が必要かもしれません。',
+                    good: 'エンゲージメントが高い状態ですね📈 このモチベーションを維持していきましょう。',
+                    confused: '現在の業務環境について詳しく教えてください🔍 改善点を一緒に見つけましょう。'
+                }
+            },
+            medical: {
+                icon: '👩‍⚕️',
+                name: '専門モード',
+                responses: {
+                    tired: '疲労感の詳細について伺います📋 睡眠パターンや食欲の変化はありますか？',
+                    good: '良好な精神状態を維持できていますね✅ 現在のセルフケア方法を教えてください。',
+                    confused: '症状の具体的な経過について詳しく教えてください📝 発症時期や変化パターンなど。'
+                }
+            }
+        };
+
+        // AIの応答パターン
+        const aiResponses = {
+            general: [
+                'そうなんですね😊 もう少し詳しく教えてもらえますか？',
+                'なるほど✨ それはどんな感じですか？',
+                'お話しくださってありがとうございます💕 他に気になることはありますか？',
+                'そういう時もありますよね🤗 いつ頃からそう感じていますか？',
+                'わかります💭 似たような状況はこれまでにもありましたか？'
+            ],
+            business: [
+                '業務パフォーマンスへの影響を評価する必要がありますね📊',
+                'チームや上司との関係性はいかがですか👥',
+                'ワークライフバランスの観点から分析してみましょう⚖️',
+                '現在の業務負荷レベルについて詳しく教えてください📈',
+                'エンゲージメント向上のための改善案を検討しましょう🎯'
+            ],
+            medical: [
+                '症状の詳細について、もう少し具体的に教えてください📋',
+                '生活リズムや食事、睡眠の状況はいかがですか🏥',
+                'これまでの経過と現在の状況を整理してみましょう📊',
+                '他に身体的な症状や変化はありますか🩺',
+                '専門的な観点から、さらに詳しく伺いたいと思います👩‍⚕️'
+            ]
+        };
+
+        // 翻訳辞書
+        const translationDict = {
+            '疲れ': {
+                general: 'お疲れ気味💤',
+                business: 'パフォーマンス低下傾向📉',
+                medical: '疲労感（倦怠感）🏥'
+            },
+            'しんどい': {
+                general: 'つらい気持ち😢',
+                business: 'エンゲージメント低下📊',
+                medical: '抑うつ的気分🩺'
+            },
+            'やる気がない': {
+                general: '元気が出ない😴',
+                business: 'モチベーション低下📉',
+                medical: '意欲減退・アパシー📋'
+            },
+            '眠れない': {
+                general: '寝つきが悪い🌙',
+                business: 'リカバリー不足💤',
+                medical: '入眠困難・睡眠障害🏥'
+            },
+            '不安': {
+                general: '心配ごと😰',
+                business: 'ストレス反応⚠️',
+                medical: '不安症状・不安障害🩺'
+            }
+        };
+
+        // 🎨 エフェクト初期化
+        function initEffects() {
+            createStars();
+            createFloatingHearts();
+            
+            // 桜エフェクト定期実行
+            setInterval(createSakura, 2000);
+        }
+
+        function createStars() {
+            const starsContainer = document.getElementById('stars');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.textContent = '✨';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                starsContainer.appendChild(star);
+            }
+        }
+
+        function createSakura() {
+            const sakura = document.createElement('div');
+            sakura.className = 'sakura';
+            sakura.textContent = '🌸';
+            sakura.style.left = Math.random() * 100 + 'vw';
+            sakura.style.animationDuration = (Math.random() * 3 + 7) + 's';
+            document.body.appendChild(sakura);
+            
+            setTimeout(() => {
+                sakura.remove();
+            }, 10000);
+        }
+
+        function createFloatingHearts() {
+            setInterval(() => {
+                const heart = document.createElement('div');
+                heart.className = 'heart';
+                heart.textContent = '💕';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDelay = Math.random() * 2 + 's';
+                document.getElementById('floatingHearts').appendChild(heart);
+                
+                setTimeout(() => {
+                    heart.remove();
+                }, 3000);
+            }, 5000);
+        }
+
+        // 🔒 パスワード機能
+        function requestModeSwitch(mode) {
+            pendingMode = mode;
+            showPasswordModal();
+        }
+
+        function showPasswordModal() {
+            document.getElementById('passwordModal').style.display = 'flex';
+            document.getElementById('passwordInput').focus();
+        }
+
+        function closePasswordModal() {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('passwordInput').value = '';
+            pendingMode = null;
+        }
+
+        function checkPassword() {
+            const inputPassword = document.getElementById('passwordInput').value;
+            if (inputPassword === passwords[pendingMode]) {
+                switchMode(pendingMode);
+                closePasswordModal();
+                showModeChangeMessage();
+            } else {
+                alert('パスワードが間違っています❌');
+                document.getElementById('passwordInput').value = '';
+            }
+        }
+
+        function showModeChangeMessage() {
+            setTimeout(() => {
+                sendAIMessage(`${modes[currentMode].name}に切り替わりました✨ より専門的な分析が可能になります。`);
+            }, 500);
+        }
+
+        // トグル機能
+        function toggleVisualSection() {
+            const visualSection = document.getElementById('visualSection');
+            const toggleBtn = document.querySelector('.visual-toggle-btn');
+            const toggleIcon = document.getElementById('visualToggleIcon');
+            const toggleText = document.getElementById('visualToggleText');
+            
+            if (visualSection.style.display === 'none' || visualSection.style.display === '') {
+                // 展開
+                visualSection.style.display = 'block';
+                visualSection.style.animation = 'slideDown 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                toggleBtn.classList.add('expanded');
+                toggleIcon.textContent = '🌟';
+                toggleText.textContent = '🎨 気分表現を閉じる';
+            } else {
+                // 折りたたみ
+                visualSection.style.animation = 'slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => {
+                    visualSection.style.display = 'none';
+                }, 350);
+                toggleBtn.classList.remove('expanded');
+                toggleIcon.textContent = '✨';
+                toggleText.textContent = '🎨 気分を色で表現してみる';
+            }
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            
+            // ボタンの状態更新
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // ヘッダー更新
+            const subtitles = {
+                general: 'あなたの心に寄り添う、優しいAIカウンセラー',
+                business: 'ビジネスパフォーマンス分析システム',
+                medical: '専門的メンタルヘルス評価システム'
+            };
+            document.querySelector('.header-subtitle').textContent = subtitles[mode];
+            
+            // 最後のメッセージを翻訳表示
+            if (conversationHistory.length > 0) {
+                const lastMessage = conversationHistory[conversationHistory.length - 1];
+                if (lastMessage.type === 'user') {
+                    showTranslation(lastMessage.content);
+                }
+            }
+        }
+
+        function showTranslation(userMessage) {
+            const translationDisplay = document.getElementById('translationDisplay');
+            const translationText = document.getElementById('translationText');
+            
+            let translatedText = userMessage;
+            
+            // 翻訳辞書から該当する表現を検索
+            Object.keys(translationDict).forEach(key => {
+                if (userMessage.includes(key)) {
+                    translatedText = translationDict[key][currentMode];
+                }
+            });
+            
+            translationText.textContent = `${modes[currentMode].name}表示: "${translatedText}"`;
+            translationDisplay.style.display = 'block';
+            
+            setTimeout(() => {
+                translationDisplay.style.display = 'none';
+            }, 4000);
+        }
+
+        function selectColor(color, mood) {
+            document.querySelectorAll('.color-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+            
+            selectedColor = color;
+            currentMood.color = color;
+            currentMood.description = mood;
+            
+            // 色選択をメッセージとして送信
+            sendQuickResponse(`気分は「${mood}」です✨`);
+            
+            // 選択後は自動で折りたたみ
+            setTimeout(() => {
+                toggleVisualSection();
+            }, 800);
+        }
+
+        function updateMoodAnalysis() {
+            const energy = document.getElementById('energySlider').value;
+            currentMood.energy = energy;
+        }
+
+        function sendQuickResponse(response) {
+            sendUserMessage(response);
+            generateAIResponse(response);
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (message) {
+                sendUserMessage(message);
+                input.value = '';
+                setTimeout(() => generateAIResponse(message), 1000);
+            }
+        }
+
+        function sendUserMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user';
+            
+            messageDiv.innerHTML = `
+                <div class="avatar user">😊</div>
+                <div class="message-content">
+                    <div class="message-text">${message}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            conversationHistory.push({
+                type: 'user',
+                content: message,
+                timestamp: new Date(),
+                mood: { ...currentMood }
+            });
+            
+            // 翻訳表示
+            if (currentMode !== 'general') {
+                showTranslation(message);
+            }
+        }
+
+        function generateAIResponse(userMessage) {
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                hideTypingIndicator();
+                
+                let response = getContextualResponse(userMessage);
+                sendAIMessage(response);
+                
+                // 分析パネル更新（企業・専門モードのみ）
+                if (currentMode !== 'general') {
+                    updateAnalysisPanel(userMessage);
+                }
+                
+            }, 1500 + Math.random() * 1000);
+        }
+
+        function getContextualResponse(userMessage) {
+            const responses = aiResponses[currentMode];
+            const msg = userMessage.toLowerCase();
+            
+            if (msg.includes('疲れ') || msg.includes('しんどい') || msg.includes('つらい')) {
+                return modes[currentMode].responses.tired;
+            } else if (msg.includes('いい') || msg.includes('元気') || msg.includes('調子')) {
+                return modes[currentMode].responses.good;
+            } else if (msg.includes('わからない') || msg.includes('もやもや')) {
+                return modes[currentMode].responses.confused;
+            }
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        function sendAIMessage(message) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai';
+            
+            messageDiv.innerHTML = `
+                <div class="avatar ai">${modes[currentMode].icon}</div>
+                <div class="message-content">
+                    <div class="message-text">${message}</div>
+                    <div class="message-time">${getCurrentTime()}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            conversationHistory.push({
+                type: 'ai',
+                content: message,
+                timestamp: new Date(),
+                mode: currentMode
+            });
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+            document.getElementById('chatMessages').scrollTop = document.getElementById('chatMessages').scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        function updateAnalysisPanel(userMessage) {
+            // 既存の分析パネルを削除
+            const existingPanel = document.querySelector('.analysis-panel');
+            if (existingPanel) {
+                existingPanel.remove();
+            }
+            
+            // 新しい分析パネルを作成
+            const analysisPanel = document.createElement('div');
+            analysisPanel.className = 'analysis-panel';
+            analysisPanel.style.cssText = `
+                background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08));
+                border-radius: 25px;
+                padding: 2rem;
+                margin-top: 1.5rem;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                backdrop-filter: blur(20px);
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            `;
+            
+            const analysis = analyzeMessage(userMessage);
+            
+            analysisPanel.innerHTML = `
+                <div style="font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; color: white; text-align: center; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);">
+                    📊 ${modes[currentMode].name} - リアルタイム分析
+                </div>
+                <div style="display: grid; gap: 1rem;">
+                    <div style="padding: 1rem; background: rgba(102, 126, 234, 0.2); border-radius: 15px; border-left: 4px solid #667eea;">
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.5rem;">感情分析</div>
+                        <div style="font-size: 1.1rem; font-weight: 600; color: white;">${analysis.emotion}</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(240, 147, 251, 0.2); border-radius: 15px; border-left: 4px solid #f093fb;">
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.5rem;">ストレス度</div>
+                        <div style="font-size: 1.1rem; font-weight: 600; color: white;">${analysis.stress}</div>
+                    </div>
+                    <div style="padding: 1rem; background: rgba(16, 185, 129, 0.2); border-radius: 15px; border-left: 4px solid #10b981;">
+                        <div style="font-size: 0.9rem; color: rgba(255, 255, 255, 0.8); margin-bottom: 0.5rem;">推奨アクション</div>
+                        <div style="font-size: 1.1rem; font-weight: 600; color: white;">${analysis.action}</div>
+                    </div>
+                </div>
+            `;
+            
+            document.querySelector('.input-area').appendChild(analysisPanel);
+        }
+
+        function analyzeMessage(message) {
+            const msg = message.toLowerCase();
+            let emotion, stress, action;
+            
+            if (currentMode === 'medical') {
+                if (msg.includes('疲れ') || msg.includes('しんどい')) {
+                    emotion = '軽度抑うつ気分の可能性🏥';
+                    stress = 'レベル3/5 (中等度)⚠️';
+                    action = 'PHQ-2スクリーニング推奨📋';
+                } else if (msg.includes('不安') || msg.includes('心配')) {
+                    emotion = '不安症状の兆候🩺';
+                    stress = 'レベル4/5 (高)🚨';
+                    action = 'GAD-7評価の実施検討📊';
+                } else if (msg.includes('眠れない')) {
+                    emotion = '睡眠障害の可能性🌙';
+                    stress = 'レベル3/5 (中等度)⚠️';
+                    action = '睡眠衛生指導・専門医紹介🏥';
+                } else {
+                    emotion = '経過観察中👀';
+                    stress = 'レベル2/5 (軽度)✅';
+                    action = '継続的なモニタリング📈';
+                }
+            } else if (currentMode === 'business') {
+                if (msg.includes('疲れ') || msg.includes('しんどい')) {
+                    emotion = 'エンゲージメント低下📉';
+                    stress = 'パフォーマンス影響度: 中⚠️';
+                    action = '上司との1on1面談実施👥';
+                } else if (msg.includes('やる気') || msg.includes('モチベーション')) {
+                    emotion = 'モチベーション課題🎯';
+                    stress = '生産性リスク: 高🚨';
+                    action = '業務配分の見直し検討📊';
+                } else if (msg.includes('職場') || msg.includes('同僚')) {
+                    emotion = '職場環境ストレス🏢';
+                    stress = 'チーム影響度: 中⚠️';
+                    action = 'チームビルディング実施🤝';
+                } else {
+                    emotion = '安定的エンゲージメント📈';
+                    stress = 'リスク度: 低✅';
+                    action = '現状維持・定期確認👍';
+                }
+            }
+            
+            return { emotion, stress, action };
+        }
+
+        function getCurrentTime() {
+            const now = new Date();
+            return `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+        }
+
+        // パスワード入力でエンター対応
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && document.getElementById('passwordModal').style.display === 'flex') {
+                checkPassword();
+            }
+        });
+
+        // 初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('✨ AI対話型パーソナルカルテが起動しました');
+            initEffects();
+        });
+    </script>
+</body>
+</html>
